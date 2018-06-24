@@ -12,24 +12,43 @@
   </head>
 
   <body>
-    <div class="container">
-      <header class="header">
-        <nav role="navigation">
-          <ul class="nav nav-pills pull-right">
-            <li><a href="/sessions/new">Login</a></li>
-          </ul>
-        </nav>
-        <span class="logo"></span>
-      </header>
+    <div class="full height">
 
-      <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
-      <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
+      <div class="ui attached stackable menu">
+        <div class="ui container">
+          <a class="item" href="/">
+            <i class="fas fa-home"></i><%= gettext "Home"%>
+          </a>
+          <a class="item" href="/explore/repositories"><%= gettext "Explore"%></a>
+          <a class="item" href="/docs"><%= gettext "Docs"%></a>
 
-      <main role="main">
-        <%= render @view_module, @view_template, assigns %>
-      </main>
+        </div>
+        <div class="right item">
+          <a class="item" href="/sessions/new"><%= gettext "Sign In" %></a>
+        </div>
+      </div>
 
+
+      <div class="ui container">
+
+        <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
+        <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
+        
+        <main role="main">
+          <%= render @view_module, @view_template, assigns %>
+        </main>
+      </div>
     </div> <!-- /container -->
+    <footer>
+      <div class="ui borderless menu">
+        <div class="ui left item ">
+          Efossils
+        </div>
+        <div class="ui right item links">
+          
+        </div>
+      </div>
+    </footer>
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
   </body>
 </html>

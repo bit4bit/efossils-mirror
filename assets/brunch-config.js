@@ -54,7 +54,7 @@ exports.config = {
         sass: {
             mode: 'native',
             options: {
-                includePaths: ["node_modules/bootstrap/scss", "node_modules/font-awesome/scss"],
+                includePaths: ["node_modules/semantic-ui-sass", "node_modules/font-awesome/scss"],
                 precision: 8
             }
         },
@@ -72,7 +72,7 @@ exports.config = {
             Tether: 'tether',
             Popper: 'popper.js',
             jQuery: 'jquery',
-            bootstrap: 'bootstrap'
+            "semantic-ui": 'semantic-ui-sass'
         }
     }
 };

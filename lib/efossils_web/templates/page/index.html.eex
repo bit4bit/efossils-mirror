@@ -1,30 +1,5 @@
-<div class="jumbotron">
-  <h2><%= gettext "Welcome to %{name}!", name: "Efossils" %></h2>
+<div class="ui center aligned container">
+  <div class="ui huge header"><%= gettext "Welcome to %{name}!", name: "Efossils" %></div>
+
   <p class="lead">A productive multirepository for <b>fossils</b></p>
-</div>
-
-<div class="row marketing">
-  <div class="col-lg-6">
-    <h4>Resources</h4>
-    <ul>
-      <li>
-        <a href="/docs/overview">Guides</a>
-      </li>
-      <li>
-        <a href="/docs">Docs</a>
-      </li>
-      <li>
-        <a href="https://chiselapp.com/user/bit4bit/repository/efossils">Source</a>
-      </li>
-    </ul>
-  </div>
-
-  <div class="col-lg-6">
-    <h4>Help</h4>
-    <ul>
-      <li>
-        <a href="http://webchat.freenode.net/?channels=efossils">#efossils on freenode IRC</a>
-      </li>
-    </ul>
-  </div>
 </div>

@@ -6,13 +6,14 @@
     "watch": "brunch watch --stdin"
   },
   "dependencies": {
-    "bootstrap": "^4.1.1",
     "font-awesome": "^4.7.0",
     "jquery": "^3.3.1",
     "phoenix": "file:../deps/phoenix",
     "phoenix_html": "file:../deps/phoenix_html",
     "popper.js": "^1.14.3",
     "sass-brunch": "^2.10.4",
+    "semantic-ui": "^2.3.2",
+    "semantic-ui-sass": "^2.2.11",
     "tether": "^1.4.4"
   },
   "devDependencies": {
