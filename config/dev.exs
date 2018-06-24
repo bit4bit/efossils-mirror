@@ -51,8 +51,8 @@ config :phoenix, :stacktrace_depth, 20
 # Configure your database
 config :efossils, Efossils.Repo,
   adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "postgres",
+  username: "neurodev",
+  password: "neurodev",
   database: "efossils_dev",
-  hostname: "localhost",
+  hostname: "10.0.0.150",
   pool_size: 10
