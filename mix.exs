@@ -44,7 +44,6 @@ defmodule Efossils.Mixfile do
       {:scrivener, "~> 2.0"},
       {:scrivener_ecto, "~> 1.0"},
       {:sizeable, "~> 1.0"},
-      
       #https://github.com/smpallen99/coherence/issues/357
       {:plug, "1.5.0"},
       {:coherence, "~> 0.5"}
