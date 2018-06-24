@@ -1,6 +1,6 @@
 <div class="jumbotron">
-  <h2><%= gettext "Welcome to %{name}!", name: "Phoenix" %></h2>
-  <p class="lead">A productive web framework that<br />does not compromise speed and maintainability.</p>
+  <h2><%= gettext "Welcome to %{name}!", name: "Efossils" %></h2>
+  <p class="lead">A productive multirepository for <b>fossils</b></p>
 </div>
 
 <div class="row marketing">
@@ -8,13 +8,13 @@
     <h4>Resources</h4>
     <ul>
       <li>
-        <a href="http://phoenixframework.org/docs/overview">Guides</a>
+        <a href="/docs/overview">Guides</a>
       </li>
       <li>
-        <a href="https://hexdocs.pm/phoenix">Docs</a>
+        <a href="/docs">Docs</a>
       </li>
       <li>
-        <a href="https://github.com/phoenixframework/phoenix">Source</a>
+        <a href="https://chiselapp.com/user/bit4bit/repository/efossils">Source</a>
       </li>
     </ul>
   </div>
@@ -23,13 +23,7 @@
     <h4>Help</h4>
     <ul>
       <li>
-        <a href="http://groups.google.com/group/phoenix-talk">Mailing list</a>
-      </li>
-      <li>
-        <a href="http://webchat.freenode.net/?channels=elixir-lang">#elixir-lang on freenode IRC</a>
-      </li>
-      <li>
-        <a href="https://twitter.com/elixirphoenix">@elixirphoenix</a>
+        <a href="http://webchat.freenode.net/?channels=efossils">#efossils on freenode IRC</a>
       </li>
     </ul>
   </div>

@@ -47,7 +47,7 @@ defmodule Efossils.Coherence.Schemas do
     @repo.insert change_user(params)
   end
 
-  Enum.each [Efossils.Coherence.Invitation], fn module ->
+  Enum.each [], fn module ->
 
     name =
       module
