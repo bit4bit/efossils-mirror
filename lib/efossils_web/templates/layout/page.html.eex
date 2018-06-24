@@ -24,7 +24,9 @@
 
         </div>
         <div class="right item">
-          <a class="item" href="/sessions/new"><%= gettext "Sign In" %></a>
+          <a class="item" href="/sessions/new">
+            <i class="octicon octicon-sign-in"></i><%= gettext "Sign In" %>
+          </a>
         </div>
       </div>
 

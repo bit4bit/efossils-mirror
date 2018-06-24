@@ -40,7 +40,7 @@ exports.config = {
     // Phoenix paths configuration
     paths: {
         // Dependencies and current project directories to watch
-        watched: ["static", "css", "js", "vendor"],
+        watched: ["static", "css", "js", "fonts", "vendor"],
         // Where to compile files to
         public: "../priv/static"
     },
@@ -58,6 +58,11 @@ exports.config = {
                 precision: 8
             }
         },
+        copycat: {
+            fonts: ["../priv/static/fonts", "vendor/fonts", "node_modules/font-awesome/fonts"],
+            verbose: false,
+            onlyChange: true
+        }
     },
 
     modules: {
