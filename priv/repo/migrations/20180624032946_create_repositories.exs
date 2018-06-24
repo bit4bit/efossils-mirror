@@ -3,7 +3,7 @@ defmodule Efossils.Repo.Migrations.CreateRepositories do
 
   def change do
     create table(:repositories) do
-      add :lowerName, :string
+      add :lower_name, :string
       add :name, :string
       add :description, :string
       add :website, :string
@@ -17,6 +17,9 @@ defmodule Efossils.Repo.Migrations.CreateRepositories do
 
       timestamps()
     end
+    
+    create unique_index(:repositories, [:owner_id, :name])
+    
     create index(:repositories, [:base_repository_id])
     create index(:repositories, [:owner_id])
   end

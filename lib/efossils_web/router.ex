@@ -43,6 +43,7 @@ defmodule EfossilsWeb.Router do
     pipe_through :protected
 
     get "/dashboard", PageController, :dashboard
+    resources "/repositories", RepositoryController
   end
 
   

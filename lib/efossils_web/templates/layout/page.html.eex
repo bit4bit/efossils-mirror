@@ -14,7 +14,7 @@
   <body>
     <div class="full height">
 
-      <div class="ui attached stackable menu">
+      <div class="ui text attached stackable menu">
         <div class="ui container">
           <a class="item" href="/">
             <i class="fas fa-home"></i><%= gettext "Home"%>

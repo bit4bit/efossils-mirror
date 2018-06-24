@@ -293,4 +293,11 @@ defmodule Efossils.Accounts do
   def change_star(%Star{} = star) do
     Star.changeset(star, %{})
   end
+
+
+  alias Efossils.Coherence.User
+
+  def list_users do
+    Repo.all(User)
+  end
 end

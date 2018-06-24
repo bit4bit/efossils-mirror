@@ -4,8 +4,8 @@ defmodule Efossils.Accounts.Star do
 
 
   schema "stars" do
-    field :user, :id
-    field :repository, :id
+    field :user_id, :integer
+    field :repository_id, :integer
 
     timestamps()
   end

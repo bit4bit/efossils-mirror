@@ -23,7 +23,10 @@ defmodule Efossils.Coherence.User do
     #counters
     field :num_stars, :integer
     field :num_repos, :integer
-    
+
+    has_many :repositories, Efossils.Accounts.Repository, [foreign_key: :owner_id]
+    has_many :stars, Efossils.Accounts.Star
+
     timestamps()
   end
 

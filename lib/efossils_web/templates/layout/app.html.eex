@@ -14,7 +14,7 @@
   <body>
     <div class="full height">
 
-      <div class="ui attached stackable menu">
+      <div class="ui text attached stackable menu">
         <div class="ui container">
           <a class="item" href="/">
             <i class="fas fa-home"></i><%= gettext "Home"%>
@@ -22,6 +22,13 @@
           <a class="item" href="/explore/repositories"><%= gettext "Explore"%></a>
           <a class="item" href="/docs"><%= gettext "Docs"%></a>
 
+        </div>
+        <div class="ui right dropdown item">
+          More
+          <i class="dropdown icon"></i>
+          <div class="menu">
+            <%= link(gettext("Create Repository"), to: repository_path(@conn, :new), class: "item") %>
+          </div>
         </div>
         <div class="right item">
           <%= link(gettext("Logout"), to: session_path(@conn, :delete), method: :delete, class: "ui button")%>

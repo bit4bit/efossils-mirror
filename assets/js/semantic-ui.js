@@ -1,0 +1,1 @@
+jQuery('.ui.dropdown').dropdown()
