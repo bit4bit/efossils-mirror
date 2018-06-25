@@ -1,0 +1,9 @@
+*.css
+*.css.map
+*.js.map
+*.ico
+*.png
+*.ttf
+*.woff
+*.woff2
+*.min.css

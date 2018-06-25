@@ -1,0 +1,10 @@
+*/**~
+*/*#
+**~
+**#
+*.fossil
+_build/
+*/node_modules
+deps/
+priv/static/
+priv/data/
