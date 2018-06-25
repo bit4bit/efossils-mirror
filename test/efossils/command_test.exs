@@ -12,5 +12,14 @@ defmodule Efossils.CommandTest do
       assert Efossils.Command.new_user(ctx, "aba", "aba", "ebo") == {:ok, ctx}
       assert Efossils.Command.new_user(ctx, "abo", 55, "ebo") == {:ok, ctx}
     end
+
+    test "password_user/3 returns :ok" do
+      {:ok, ctx} = Efossils.Command.init_repository("test", "grouptest")
+      assert Efossils.Command.new_user(ctx, "aba", "aba", "ebo") == {:ok, ctx}
+      assert Efossils.Command.password_user(ctx, "aba", "haber") == {:ok, ctx}
+      assert Efossils.Command.password_user(ctx, "aboeu", "oo") == {:error, :user_not_exists}
+    end
+
+    
   end
 end
