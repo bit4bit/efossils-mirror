@@ -12,8 +12,8 @@ config :logger, level: :warn
 # Configure your database
 config :efossils, Efossils.Repo,
   adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "postgres",
+  username: "neurodev",
+  password: "neurodev",
   database: "efossils_test",
-  hostname: "localhost",
+  hostname: "10.0.0.150",
   pool: Ecto.Adapters.SQL.Sandbox

@@ -7,7 +7,11 @@ use Mix.Config
 
 # General application configuration
 config :efossils,
-  ecto_repos: [Efossils.Repo]
+  ecto_repos: [Efossils.Repo],
+  fossil_repositories_path: "/data/repositories",
+  fossil_work_path: "/data/works",
+  fossil_user_admin: "efossils_admin"
+
 
 # Configures the endpoint
 config :efossils, EfossilsWeb.Endpoint,
