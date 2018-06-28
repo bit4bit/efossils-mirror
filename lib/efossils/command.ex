@@ -9,22 +9,51 @@ defmodule Efossils.Command do
 
   @type context :: any()
   
+  
+  defp start_fossil_pool() do
+    Agent.start_link(fn -> Map.new() end, name: __MODULE__)
+  end
+
+  defp get_db_path_from_pool(db_path) do
+    Agent.get(__MODULE__, fn map ->
+      Map.get(map, db_path)
+    end)
+  end
+  
+  defp get_fossil_url_from_pool(ctx, baseurl) do
+    db_path = Keyword.get(ctx, :db_path)
+    
+    case get_db_path_from_pool(db_path) do
+      nil ->
+        # TODO: el proceso queda activo aunque se detenga la plataforma
+        %Porcelain.Process{err: nil, out: stream} = Porcelain.spawn(@command, ["server", "--baseurl", baseurl, db_path], [out: :stream])
+        ["Listening for HTTP requests on TCP port " <> ports] = Enum.take(stream, 1)
+        {port, _} = Integer.parse(ports)
+        url = "http://127.0.0.1:#{port}"
+        Agent.update(__MODULE__, &Map.put(&1, db_path, url))
+        url
+      url -> url
+    end
+  end
 
   @doc """
   Inicializa un repositorio
   """
   @spec init_repository(String.t, String.t):: {:ok, String.t} | {:error, String.t}
   def init_repository(name, group) do
+    start_fossil_pool()
+    
     priv_path = Application.app_dir(:efossils, "priv")
     group_path = Path.join([priv_path, @repositories_path, group])
     File.mkdir_p!(group_path)
     work_path = Path.join([priv_path, @work_path, group, name])
     File.mkdir_p!(work_path)
     db_path = Path.join([group_path, "#{name}.fossil"])
+    
     ctx = [db_path: db_path,
            work_path: work_path,
            group_path: group_path,
-           default_username: @username_admin
+           default_username: @username_admin,
           ]
     case cmd(ctx, ["init", db_path]) do
       {stdout, 0} ->
@@ -82,32 +111,16 @@ defmodule Efossils.Command do
     end
   end
 
-  def stream_http(instream, ctx) do
+  def request_http(ctx, baseurl, url) do
     db_path = Keyword.get(ctx, :db_path)
-    proc = %Porcelain.Process{err: nil, out: outstream} = cmd_with_stream(ctx, ["http", "--nossl", db_path],
-      [in: :receive, out: :stream, result: :discard])
-    Stream.each(instream, fn data ->
-      Porcelain.Process.send_input(proc, data)
-    end)
-    |> Stream.run
-
-    {proc, outstream}
+    fossil_url = get_fossil_url_from_pool(ctx, baseurl)
+    remote_url = fossil_url <> url
+    HTTPoison.get(remote_url)
   end
 
-  def stream_await(proc) do
-    Porcelain.Process.await(proc)
-  end
-  
   defp cmd(ctx, args, opts \\ []) do
     env = [{"HOME", Keyword.get(ctx, :work_path)},
            {"USER", Keyword.get(ctx, :default_username)}]
     System.cmd("fossil", args, [stderr_to_stdout: true, env: env] ++ opts)
-  end
-
-  defp cmd_with_stream(ctx, args, opts) do
-    env = [env: [{"HOME", Keyword.get(ctx, :work_path)},
-                 {"USER", Keyword.get(ctx, :default_username)}]]
-    
-    Porcelain.spawn(@command, args, Keyword.merge(opts, env))
   end
 end
