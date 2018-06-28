@@ -16,8 +16,8 @@
 
       <div class="ui text attached stackable menu">
         <div class="ui container">
-          <a class="item" href="/">
-            <i class="fas fa-home"></i><%= gettext "Home"%>
+          <a class="item" href="/dashboard">
+            <i class="fas fa-home"></i><%= gettext "Dashboard"%>
           </a>
           <a class="item" href="/explore/repositories"><%= gettext "Explore"%></a>
           <a class="item" href="/docs"><%= gettext "Docs"%></a>

@@ -26,7 +26,7 @@ defmodule Efossils.Command do
     case get_db_path_from_pool(db_path) do
       nil ->
         # TODO: el proceso queda activo aunque se detenga la plataforma
-        %Porcelain.Process{err: nil, out: stream} = Porcelain.spawn(@command, ["server", "--baseurl", baseurl, db_path], [out: :stream])
+        %Porcelain.Process{err: nil, out: stream} = Porcelain.spawn(@command, ["server", "--nossl", "--baseurl", baseurl, db_path], [out: :stream])
         ["Listening for HTTP requests on TCP port " <> ports] = Enum.take(stream, 1)
         {port, _} = Integer.parse(ports)
         url = "http://127.0.0.1:#{port}"
@@ -58,6 +58,7 @@ defmodule Efossils.Command do
     case cmd(ctx, ["init", db_path]) do
       {stdout, 0} ->
         if String.contains?(stdout, "admin-user") do
+          :ok = force_setting(ctx, "http_authentication_ok", "1")
           {:ok, ctx}
         else
           {:error, stdout}
@@ -70,22 +71,23 @@ defmodule Efossils.Command do
   end
 
   @doc """
-  Crea un nuevo usuario en repositorio.
+  Crea un nuevo usuario en repositorio, si el usuario ya existe actualiza contrasena del mismo.
   Se utiliza `contact_info` como `id` de relacion, con plataforma.
+  
   """
   @spec new_user(context(), String.t, String.t|integer, String.t) :: {:ok, context()} | {:error, String.t}
   def new_user(ctx, username, id, password) when is_integer(id) do
     ids = Integer.to_string(id)
     new_user(ctx, username, ids, password)
   end
-  def new_user(ctx, username, contact_info, password) do
+  def new_user(ctx, username, contact_info, password) when is_binary(contact_info) and is_binary(username) and is_binary(password) do
     case cmd(ctx, ["user", "new", "-R", Keyword.get(ctx, :db_path),
               username, contact_info, password]) do
       {_stdout, 0} ->
         {:ok, ctx}
       {stdout, 1} ->
         if String.contains?(stdout, "already exists") do
-          {:ok, ctx}
+          password_user(ctx, username, password)
         else
           {:error, stdout}
         end
@@ -111,13 +113,36 @@ defmodule Efossils.Command do
     end
   end
 
-  def request_http(ctx, baseurl, url) do
+  def request_http(ctx, credentials, baseurl, method, url, body, content_type) do
     db_path = Keyword.get(ctx, :db_path)
+    opts = case credentials do
+             nil -> []
+             credentials ->
+               [hackney: [basic_auth: credentials]]
+           end
     fossil_url = get_fossil_url_from_pool(ctx, baseurl)
     remote_url = fossil_url <> url
-    HTTPoison.get(remote_url)
+    method = case method do
+               "GET" -> :get
+               "POST" -> :post
+               "PUT" -> :put
+               "DELETE" -> :delete
+             end
+    HTTPoison.request(method, remote_url, body, [{"Content-Type", content_type}], opts)
   end
 
+  def force_setting(ctx, key, val) do
+    db_path = Keyword.get(ctx, :db_path)
+    query = "INSERT OR REPLACE INTO config VALUES(\"#{key}\", \"#{val}\", NULL)"
+    case cmd(ctx, ["sql",
+                   "-R", db_path, query]) do
+      {_, 0} ->
+        :ok
+      {stdout, _} ->
+        {:error, stdout}
+    end
+  end
+  
   defp cmd(ctx, args, opts \\ []) do
     env = [{"HOME", Keyword.get(ctx, :work_path)},
            {"USER", Keyword.get(ctx, :default_username)}]

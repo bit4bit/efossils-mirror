@@ -41,7 +41,8 @@ config :coherence,
   logged_out_url: "/",
   email_from_name: "Your Name",
   email_from_email: "yourname@example.com",
-  opts: [:authenticatable, :recoverable, :lockable, :trackable, :unlockable_with_token, :confirmable, :registerable]
+  #TODO: se deshabilita `trackable`, error con plug 1.6
+  opts: [:authenticatable, :recoverable, :lockable,  :unlockable_with_token, :confirmable, :registerable]
 
 config :coherence, EfossilsWeb.Coherence.Mailer,
   adapter: Swoosh.Adapters.Sendgrid,

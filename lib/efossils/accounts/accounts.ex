@@ -21,6 +21,11 @@ defmodule Efossils.Accounts do
     Repo.all(Repository)
   end
 
+  def list_repositories_by_owner(owner) do
+    Repo.all(from r in Repository, where: r.owner_id == ^owner.id)
+    |> Repo.preload([:base_repository])
+  end
+  
   @doc """
   Gets a single repository.
 
