@@ -47,5 +47,3 @@ config :coherence, EfossilsWeb.Coherence.Mailer,
   adapter: Swoosh.Adapters.Sendgrid,
   api_key: "your api key here"
 # %% End Coherence Configuration %%
-
-config :porcelain, :driver, Porcelain.Driver.Basic

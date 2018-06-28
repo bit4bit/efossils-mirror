@@ -20,7 +20,7 @@ defmodule Efossils.Mixfile do
   def application do
     [
       mod: {Efossils.Application, []},
-      extra_applications: [:logger, :runtime_tools, :porcelain, :coherence, :scrivener]
+      extra_applications: [:logger, :runtime_tools, :httpoison, :porcelain, :coherence, :scrivener]
     ]
   end
 
@@ -48,7 +48,8 @@ defmodule Efossils.Mixfile do
       {:plug, "1.5.0"},
       {:coherence, "~> 0.5"},
       {:credo, "~> 0.9.1", only: [:dev, :test], runtime: false},
-      {:porcelain, "~> 2.0"}
+      {:porcelain, "~> 2.0"},
+      {:httpoison, "~> 1.2"}
     ]
   end
 
