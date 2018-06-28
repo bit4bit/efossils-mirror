@@ -1,4 +1,7 @@
 defmodule Efossils.Command do
+  require Logger
+  
+  @command "fossil"
   
   @repositories_path Path.absname(Application.get_env(:efossils, :fossil_repositories_path))
   @work_path Path.absname(Application.get_env(:efossils, :fossil_work_path))
@@ -6,6 +9,7 @@ defmodule Efossils.Command do
 
   @type context :: any()
   
+
   @doc """
   Inicializa un repositorio
   """
@@ -78,9 +82,32 @@ defmodule Efossils.Command do
     end
   end
 
-  defp cmd(ctx, args) do
+  def stream_http(instream, ctx) do
+    db_path = Keyword.get(ctx, :db_path)
+    proc = %Porcelain.Process{err: nil, out: outstream} = cmd_with_stream(ctx, ["http", "--nossl", db_path],
+      [in: :receive, out: :stream, result: :discard])
+    Stream.each(instream, fn data ->
+      Porcelain.Process.send_input(proc, data)
+    end)
+    |> Stream.run
+
+    {proc, outstream}
+  end
+
+  def stream_await(proc) do
+    Porcelain.Process.await(proc)
+  end
+  
+  defp cmd(ctx, args, opts \\ []) do
     env = [{"HOME", Keyword.get(ctx, :work_path)},
            {"USER", Keyword.get(ctx, :default_username)}]
-    System.cmd("fossil", args,[stderr_to_stdout: true, env: env])
+    System.cmd("fossil", args, [stderr_to_stdout: true, env: env] ++ opts)
+  end
+
+  defp cmd_with_stream(ctx, args, opts) do
+    env = [env: [{"HOME", Keyword.get(ctx, :work_path)},
+                 {"USER", Keyword.get(ctx, :default_username)}]]
+    
+    Porcelain.spawn(@command, args, Keyword.merge(opts, env))
   end
 end

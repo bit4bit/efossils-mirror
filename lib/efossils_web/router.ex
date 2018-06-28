@@ -6,7 +6,8 @@ defmodule EfossilsWeb.Router do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_flash
-    plug :protect_from_forgery
+    #TODO: deshabilitar csrf para /fossil proxy
+    #plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :put_layout, {EfossilsWeb.LayoutView, :page}
     plug Coherence.Authentication.Session
@@ -37,6 +38,7 @@ defmodule EfossilsWeb.Router do
     pipe_through :browser # Use the default browser stack
     
     get "/", PageController, :index
+    forward "/fossil", Proxy.Plug
   end
 
   scope "/", EfossilsWeb do
@@ -44,6 +46,7 @@ defmodule EfossilsWeb.Router do
 
     get "/dashboard", PageController, :dashboard
     resources "/repositories", RepositoryController
+
   end
 
   

@@ -16,6 +16,7 @@ defmodule Efossils.Accounts.Repository do
     field :size, :integer
     field :website, :string
     field :license, :string
+    field :fossil_extras, :map
     belongs_to :base_repository_id, Efossils.Accounts.Repository
     belongs_to :owner, Efossils.Coherence.User
 
@@ -25,7 +26,7 @@ defmodule Efossils.Accounts.Repository do
   @doc false
   def changeset(repository, attrs) do
     repository
-    |> cast(attrs, [:lower_name, :name, :description, :website, :num_watchers, :num_stars, :num_forks, :is_private, :size, :license, :owner_id])
+    |> cast(attrs, [:lower_name, :name, :description, :website, :num_watchers, :num_stars, :num_forks, :is_private, :size, :license, :owner_id, :fossil_extras])
     |> cast_assoc(:owner)
     |> validate_required([:name, :is_private])
     |> unique_constraint(:name, name: :repositories_owner_id_name_index)

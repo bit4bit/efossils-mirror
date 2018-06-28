@@ -20,7 +20,7 @@ defmodule Efossils.Mixfile do
   def application do
     [
       mod: {Efossils.Application, []},
-      extra_applications: [:logger, :runtime_tools, :coherence, :scrivener]
+      extra_applications: [:logger, :runtime_tools, :porcelain, :coherence, :scrivener]
     ]
   end
 
@@ -46,7 +46,9 @@ defmodule Efossils.Mixfile do
       {:sizeable, "~> 1.0"},
       #https://github.com/smpallen99/coherence/issues/357
       {:plug, "1.5.0"},
-      {:coherence, "~> 0.5"}
+      {:coherence, "~> 0.5"},
+      {:credo, "~> 0.9.1", only: [:dev, :test], runtime: false},
+      {:porcelain, "~> 2.0"}
     ]
   end
 
