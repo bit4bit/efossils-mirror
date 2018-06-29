@@ -23,11 +23,12 @@ defmodule EfossilsWeb.RepositoryController do
     |> Accounts.Repository.prepare_attrs
 
     result = with {:ok, repository} <- Accounts.create_repository(repository_params),
-                  {:ok, ctx} <- Accounts.context_repository(repository, default_username: conn.assigns[:current_user].email),
-                  # TODO: EfossilsWeb.Proxy.Plug tambien hace uso del mismo esquema email para usuario y
-                  # contraseña
-                  {:ok, _} <- Efossils.Command.password_user(ctx, conn.assigns[:current_user].email, conn.assigns[:current_user].email),
+                  {:ok, ctx} <- Accounts.context_repository(repository,
+                    default_username: conn.assigns[:current_user].email),
+                  {:ok, _} <- Efossils.Command.password_user(ctx,
+                    conn.assigns[:current_user].email, conn.assigns[:current_user].email),
                   {:ok, _} <- Efossils.Command.capabilities_user(ctx, conn.assigns[:current_user].email, "dei"),
+                  {:ok, _} <- Efossils.Command.config_import(ctx, "fossil.skin"),
                   {:ok, _} <- Accounts.update_repository(repository, Enum.into(ctx, %{})),
       do: {:ok, repository}
     

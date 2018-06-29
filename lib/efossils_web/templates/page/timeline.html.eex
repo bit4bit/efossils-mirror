@@ -1,0 +1,9 @@
+<%= for timeline <- @timeline |> elem(1) do %>
+  <div class="user">
+    <%= raw timeline["commit"] %></a>
+  </div>
+  <div class="date"><%= @timeline |> elem(0) %> <%= timeline["hour"] %></div>
+  <div class="extra text">
+<%= raw timeline["message"] %> <br>
+  </div>
+<% end %>

@@ -9,7 +9,7 @@ defmodule Efossils.Command do
   @repositories_path Path.absname(Application.get_env(:efossils, :fossil_repositories_path))
   @work_path Path.absname(Application.get_env(:efossils, :fossil_work_path))
   @username_admin Application.get_env(:efossils, :fossil_user_admin)
-
+  @priv_path Application.app_dir(:efossils, "priv")
   @type context :: any()
   
   
@@ -20,10 +20,10 @@ defmodule Efossils.Command do
   def init_repository(name, group, opts \\ []) do
     start_fossil_pool()
     
-    priv_path = Application.app_dir(:efossils, "priv")
-    group_path = Path.join([priv_path, @repositories_path, group])
+
+    group_path = Path.join([@priv_path, @repositories_path, group])
     File.mkdir_p!(group_path)
-    work_path = Path.join([priv_path, @work_path, group, name])
+    work_path = Path.join([@priv_path, @work_path, group, name])
     File.mkdir_p!(work_path)
     db_path = Path.join([group_path, "#{name}.fossil"])
     
@@ -146,7 +146,20 @@ defmodule Efossils.Command do
     end
   end
 
-
+  @spec config_import(context(), String.t) :: {:ok, context()} | {:error, :no_such_file} | {:error, String.t}
+  def config_import(ctx, file) do
+    abs_path = Path.join(@priv_path, file)
+    case cmd(ctx, ["config", "-R", Keyword.get(ctx, :db_path),
+                   "import", abs_path]) do
+      {_, 0} ->
+        {:ok, ctx}
+      {"no such file" <> _rest, _} ->
+        {:error, :no_such_file}
+      {stdout, _} ->
+        {:error, stdout}
+    end
+  end
+  
   @spec timeline(context(), Calendar.date()):: %{Calendar.date() => [String.t]}:: {:ok, [{Calendar.date(), String.t}]} | {:error, String.t}
   def timeline(ctx, checkin) when is_binary(checkin) do
     db_path = Keyword.get(ctx, :db_path)

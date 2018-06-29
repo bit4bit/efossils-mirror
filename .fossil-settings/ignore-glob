@@ -3,6 +3,7 @@
 **~
 **#
 *.fossil
+*.dump
 _build/
 */node_modules
 deps/

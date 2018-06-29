@@ -20,8 +20,8 @@
           </div>
         </div>
         <div class="extra content">
-          <a href="<%= EfossilsWeb.Utils.fossil_path("index", repository.owner, repository) %>" class="ui button">
-        To Fossil
+          <a target="__blank" href="<%= EfossilsWeb.Utils.fossil_path("index", repository.owner, repository) %>" class="ui button">
+            Open
           </a>
         </div>
       </div>
