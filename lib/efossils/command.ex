@@ -35,7 +35,7 @@ defmodule Efossils.Command do
     case cmd(ctx, ["init", db_path]) do
       {stdout, 0} ->
         if String.contains?(stdout, "admin-user") do
-          :ok = force_setting(ctx, "http_authentication_ok", "1")
+          {:ok, _} = force_setting(ctx, "http_authentication_ok", "1")
           {:ok, ctx}
         else
           {:error, stdout}
@@ -140,12 +140,24 @@ defmodule Efossils.Command do
     case cmd(ctx, ["sql",
                    "-R", db_path, query]) do
       {_, 0} ->
-        :ok
+        {:ok, ctx}
       {stdout, _} ->
         {:error, stdout}
     end
   end
 
+  def setting(ctx, key, val) do
+    case cmd(ctx, ["settings",
+                   "-R", Keyword.get(ctx, :db_path), key, val]) do
+      {_, 0} ->
+        {:ok, ctx}
+      {"no such setting" <> _rest, _} ->
+        {:error, :no_such_setting}
+      {stdout, _} ->
+        {:error, stdout}
+    end
+  end
+  
   @spec config_import(context(), String.t) :: {:ok, context()} | {:error, :no_such_file} | {:error, String.t}
   def config_import(ctx, file) do
     abs_path = Path.join(@priv_path, file)
