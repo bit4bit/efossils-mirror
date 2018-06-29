@@ -17,7 +17,7 @@ defmodule EfossilsWeb.Proxy.Router do
 
   match "/user/:user/repository/:repository/xfer/*rest" do
     {conn, Coherence.Authentication.Utils.get_first_req_header(conn,  "authorization")}
-    |> proxify_verify_creds
+    |> proxify_get_credentials
     |> proxify_basic_auth(rest)
   end
 
@@ -28,12 +28,16 @@ defmodule EfossilsWeb.Proxy.Router do
     |> proxify(rest)
   end
 
-  defp proxify_verify_creds({conn, <<"Basic ", creds64::binary >>}) do
+  defp proxify_get_credentials({conn, <<"Basic ", creds64::binary >>}) do
     {:ok, creds} = Base.decode64(creds64)
-    [email, password] = String.split(creds, ":")
-    {conn, {email, password}}
+    case String.split(creds, ":", parts: 2) do
+      [email, password]  ->
+        {conn, {email, password}}
+      _ ->
+        {conn, nil}
+    end
   end
-  defp proxify_verify_creds({conn, nil}), do: {conn, nil}
+  defp proxify_get_credentials({conn, nil}), do: {conn, nil}
 
   defp proxify_basic_auth({conn, nil}, rest) do
     conn
