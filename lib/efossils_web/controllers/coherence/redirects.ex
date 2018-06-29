@@ -52,4 +52,5 @@ defmodule Coherence.Redirects do
   # def session_delete(conn, _), do: redirect(conn, to: session_path(conn, :new))
 
   def session_create(conn, _), do: redirect(conn, to: page_path(conn, :dashboard))
+  def session_delete(conn, _), do: redirect(conn, to: "/")
 end

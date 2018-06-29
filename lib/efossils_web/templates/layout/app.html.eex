@@ -17,7 +17,7 @@
       <div class="ui text attached stackable menu">
         <div class="ui container">
           <a class="item" href="/dashboard">
-            <i class="fas fa-home"></i><%= gettext "Dashboard"%>
+            <i class="octicon octicon-home"></i><%= gettext "Dashboard"%>
           </a>
           <a class="item" href="/explore/repositories"><%= gettext "Explore"%></a>
         </div>
@@ -48,14 +48,7 @@
       </div>
     </div> <!-- /container -->
     <footer>
-      <div class="ui borderless menu">
-        <div class="ui left item ">
-          Efossils
-        </div>
-        <div class="ui right item links">
-          
-        </div>
-      </div>
+      <%= render "footer.html" %>
     </footer>
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
   </body>

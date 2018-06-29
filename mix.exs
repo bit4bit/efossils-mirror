@@ -20,7 +20,8 @@ defmodule Efossils.Mixfile do
   def application do
     [
       mod: {Efossils.Application, []},
-      extra_applications: [:logger, :runtime_tools, :httpoison, :porcelain, :coherence, :scrivener]
+      extra_applications: [:logger, :runtime_tools, :httpoison, :porcelain, :coherence,
+                           :scrivener, :scrivener_ecto,:scrivener_html]
     ]
   end
 
@@ -43,6 +44,7 @@ defmodule Efossils.Mixfile do
       {:cowboy, "~> 1.0"},
       {:scrivener, "~> 2.0"},
       {:scrivener_ecto, "~> 1.0"},
+      {:scrivener_html, "~> 1.7"},
       {:sizeable, "~> 1.0"},
       {:plug, "1.6.0"},
       {:coherence, "~> 0.5"},

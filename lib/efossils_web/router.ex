@@ -6,20 +6,20 @@ defmodule EfossilsWeb.Router do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_flash
-    #plug :protect_from_forgery
+    plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug :put_layout, {EfossilsWeb.LayoutView, :page}
     plug Coherence.Authentication.Session
+    plug :put_layout_from_session
   end
-
+  
   pipeline :protected do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_flash
-    #plug :protect_from_forgery
+    plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug :put_layout, {EfossilsWeb.LayoutView, :app}
     plug Coherence.Authentication.Session, protected: true  # Add this
+    plug :put_layout_from_session
   end
 
   pipeline :put_session do
@@ -56,7 +56,15 @@ defmodule EfossilsWeb.Router do
     resources "/repositories", RepositoryController
 
   end
-  
+
+  defp put_layout_from_session(conn, _) do
+    if conn.assigns[:current_user] do
+      Phoenix.Controller.put_layout(conn, {EfossilsWeb.LayoutView, :app})
+    else
+      Phoenix.Controller.put_layout(conn, {EfossilsWeb.LayoutView, :page})
+    end
+  end
+
   # Other scopes may use custom stacks.
   # scope "/api", EfossilsWeb do
   #   pipe_through :api

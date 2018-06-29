@@ -1,6 +1,7 @@
 defmodule Efossils.Repo do
   use Ecto.Repo, otp_app: :efossils
-
+  use Scrivener, page_size: 25
+  
   @doc """
   Dynamically loads the repository url from the
   DATABASE_URL environment variable.
