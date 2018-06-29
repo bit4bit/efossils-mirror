@@ -1,5 +1,5 @@
 <div class="ui center aligned container">
   <div class="ui huge header"><%= gettext "Welcome to %{name}!", name: "Efossils" %></div>
 
-  <p class="lead">A productive multirepository for <b>fossils</b></p>
+  <p class="lead">A productive multirepository for <a href="https://www.fossil-scm.org">fossils-scm</a></p>
 </div>

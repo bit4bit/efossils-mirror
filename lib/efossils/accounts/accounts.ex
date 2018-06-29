@@ -27,6 +27,7 @@ defmodule Efossils.Accounts do
   """
   def list_repositories do
     Repo.all(Repository)
+    |> Repo.preload([:base_repository, :owner])
   end
 
   def list_repositories_by_owner(owner) do

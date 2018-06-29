@@ -20,8 +20,6 @@
             <i class="fas fa-home"></i><%= gettext "Home"%>
           </a>
           <a class="item" href="/explore/repositories"><%= gettext "Explore"%></a>
-          <a class="item" href="/docs"><%= gettext "Docs"%></a>
-
         </div>
         <div class="right item">
           <a class="item" href="/sessions/new">
