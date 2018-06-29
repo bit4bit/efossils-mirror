@@ -1,4 +1,7 @@
 defmodule Efossils.Command do
+  @moduledoc """
+  Interfaz para la gestión de repositorio via comando *fossil*.
+  """
   require Logger
   
   @command "fossil"
@@ -10,32 +13,6 @@ defmodule Efossils.Command do
   @type context :: any()
   
   
-  defp start_fossil_pool() do
-    Agent.start_link(fn -> Map.new() end, name: __MODULE__)
-  end
-
-  defp get_db_path_from_pool(db_path) do
-    Agent.get(__MODULE__, fn map ->
-      Map.get(map, db_path)
-    end)
-  end
-  
-  defp get_fossil_url_from_pool(ctx, baseurl) do
-    db_path = Keyword.get(ctx, :db_path)
-    
-    case get_db_path_from_pool(db_path) do
-      nil ->
-        # TODO: el proceso queda activo aunque se detenga la plataforma
-        %Porcelain.Process{err: nil, out: stream} = Porcelain.spawn(@command, ["server", "--nossl", "--baseurl", baseurl, db_path], [out: :stream])
-        ["Listening for HTTP requests on TCP port " <> ports] = Enum.take(stream, 1)
-        {port, _} = Integer.parse(ports)
-        url = "http://127.0.0.1:#{port}"
-        Agent.update(__MODULE__, &Map.put(&1, db_path, url))
-        url
-      url -> url
-    end
-  end
-
   @doc """
   Inicializa un repositorio
   """
@@ -113,6 +90,10 @@ defmodule Efossils.Command do
     end
   end
 
+  @doc """
+  Realiza peticion HTTP a fossil server
+  """
+  @spec request_http(context(), {String.t, String.t}, String.t, String.t, String.t, Stream.t|map(), String.t):: {:ok, HTTPoison.Response.t} | {:error, HTTPoison.Error.t}
   def request_http(ctx, credentials, baseurl, method, url, body, content_type) do
     db_path = Keyword.get(ctx, :db_path)
     opts = case credentials do
@@ -131,6 +112,11 @@ defmodule Efossils.Command do
     HTTPoison.request(method, remote_url, body, [{"Content-Type", content_type}], opts)
   end
 
+  @doc """
+  Modifica parametro de configuracion directo en base de datos
+  del repositorio.
+  """
+  @spec force_setting(context(), String.t, String.t):: :ok | {:error, String.t}
   def force_setting(ctx, key, val) do
     db_path = Keyword.get(ctx, :db_path)
     query = "INSERT OR REPLACE INTO config VALUES(\"#{key}\", \"#{val}\", NULL)"
@@ -142,7 +128,33 @@ defmodule Efossils.Command do
         {:error, stdout}
     end
   end
+
+    defp start_fossil_pool() do
+    Agent.start_link(fn -> Map.new() end, name: __MODULE__)
+  end
+
+  defp get_db_path_from_pool(db_path) do
+    Agent.get(__MODULE__, fn map ->
+      Map.get(map, db_path)
+    end)
+  end
   
+  defp get_fossil_url_from_pool(ctx, baseurl) do
+    db_path = Keyword.get(ctx, :db_path)
+    
+    case get_db_path_from_pool(db_path) do
+      nil ->
+        # TODO: el proceso queda activo aunque se detenga la plataforma
+        %Porcelain.Process{err: nil, out: stream} = Porcelain.spawn(@command, ["server", "--nossl", "--baseurl", baseurl, db_path], [out: :stream])
+        ["Listening for HTTP requests on TCP port " <> ports] = Enum.take(stream, 1)
+        {port, _} = Integer.parse(ports)
+        url = "http://127.0.0.1:#{port}"
+        Agent.update(__MODULE__, &Map.put(&1, db_path, url))
+        url
+      url -> url
+    end
+  end
+
   defp cmd(ctx, args, opts \\ []) do
     env = [{"HOME", Keyword.get(ctx, :work_path)},
            {"USER", Keyword.get(ctx, :default_username)}]

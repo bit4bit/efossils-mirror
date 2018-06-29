@@ -11,7 +11,7 @@ end
 defmodule EfossilsWeb.Proxy.Router do
   use Plug.Router
   require Logger
-
+  
   plug :match
   plug :dispatch
 
