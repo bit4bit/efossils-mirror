@@ -20,6 +20,11 @@ defmodule Efossils.CommandTest do
       assert Efossils.Command.password_user(ctx, "aboeu", "oo") == {:error, :user_not_exists}
     end
 
-    
+    test "timeline/2 returns {:ok, lines}" do
+      date = Date.utc_today()
+      {:ok, ctx} = Efossils.Command.init_repository("test", "grouptest")
+      {:ok, {date, timelines}} = Efossils.Command.timeline(ctx, date)
+      assert length(timelines) > 0
+    end
   end
 end

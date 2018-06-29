@@ -129,7 +129,17 @@ defmodule Efossils.Command do
     end
   end
 
-    defp start_fossil_pool() do
+  @spec timeline(context(), Calendar.date()):: %{Calendar.date() => [String.t]}:: {:ok, [{Calendar.date(), String.t}]} | {:error, String.t}
+  def timeline(ctx, date) do
+    case cmd(ctx, ["timeline", "-W", "0", "-n", "0", Date.to_string(date)]) do
+      {stdout, 0} ->
+        {:ok, {date, String.split(stdout, "\n") |> tl}}
+      {stdout, _} ->
+        {:error, stdout}
+    end
+  end
+  
+  defp start_fossil_pool() do
     Agent.start_link(fn -> Map.new() end, name: __MODULE__)
   end
 
