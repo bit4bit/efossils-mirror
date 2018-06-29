@@ -22,7 +22,7 @@ defmodule EfossilsWeb.Endpoint do
   plug Plug.Logger
 
   plug Plug.Parsers,
-    parsers: [:urlencoded, :multipart, :json],
+    parsers: [EfossilsWeb.Proxy.Parser, :urlencoded, :multipart, :json],
     pass: ["*/*"],
     json_decoder: Poison
 

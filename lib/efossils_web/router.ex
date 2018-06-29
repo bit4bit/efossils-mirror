@@ -6,7 +6,7 @@ defmodule EfossilsWeb.Router do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_flash
-    plug :protect_from_forgery
+    #plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :put_layout, {EfossilsWeb.LayoutView, :page}
     plug Coherence.Authentication.Session
@@ -16,13 +16,16 @@ defmodule EfossilsWeb.Router do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_flash
-    plug :protect_from_forgery
+    #plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :put_layout, {EfossilsWeb.LayoutView, :app}
     plug Coherence.Authentication.Session, protected: true  # Add this
   end
 
-
+  pipeline :put_session do
+    plug :fetch_session
+  end
+  
   scope "/" do
     pipe_through :browser
     coherence_routes()
@@ -33,21 +36,25 @@ defmodule EfossilsWeb.Router do
     coherence_routes :protected
   end
 
+  scope "/fossil", EfossilsWeb do
+    pipe_through :put_session
+    forward "/", Proxy.Plug
+  end
+  
   scope "/", EfossilsWeb do
     pipe_through :browser # Use the default browser stack
     
     get "/", PageController, :index
-
   end
 
   scope "/", EfossilsWeb do
     pipe_through :protected
 
     get "/dashboard", PageController, :dashboard
+    get "/", PageController, :dashboard
     resources "/repositories", RepositoryController
-    forward "/fossil", Proxy.Plug
-  end
 
+  end
   
   # Other scopes may use custom stacks.
   # scope "/api", EfossilsWeb do
