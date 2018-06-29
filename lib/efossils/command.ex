@@ -17,7 +17,7 @@ defmodule Efossils.Command do
   Inicializa un repositorio
   """
   @spec init_repository(String.t, String.t):: {:ok, context()} | {:error, String.t}
-  def init_repository(name, group) do
+  def init_repository(name, group, opts \\ []) do
     start_fossil_pool()
     
     priv_path = Application.app_dir(:efossils, "priv")
@@ -30,7 +30,7 @@ defmodule Efossils.Command do
     ctx = [db_path: db_path,
            work_path: work_path,
            group_path: group_path,
-           default_username: @username_admin,
+           default_username: Keyword.get(opts, :default_username, @username_admin),
           ]
     case cmd(ctx, ["init", db_path]) do
       {stdout, 0} ->
@@ -91,6 +91,23 @@ defmodule Efossils.Command do
   end
 
   @doc """
+  Actualiza permisos para usuario
+  """
+  @spec capabilities_user(context(), String.t, String.t):: {:ok, context()} | {:error, :user_not_exists} | {:error, String.t}
+  def capabilities_user(ctx, username, caps) do
+    case cmd(ctx, ["user", "capabilities", "-R",
+                   Keyword.get(ctx, :db_path),
+                   username, caps]) do
+      {_, 0} ->
+        {:ok, ctx}
+      {"no such user:" <> _rest, _} ->
+        {:error, :user_not_exists}
+      {stdout, 0} ->
+        {:error, stdout}
+    end
+  end
+  
+  @doc """
   Realiza peticion HTTP a fossil server
   """
   @spec request_http(context(), {String.t, String.t}, String.t, String.t, String.t, Stream.t|map(), String.t):: {:ok, HTTPoison.Response.t} | {:error, HTTPoison.Error.t}
@@ -128,6 +145,7 @@ defmodule Efossils.Command do
         {:error, stdout}
     end
   end
+
 
   @spec timeline(context(), Calendar.date()):: %{Calendar.date() => [String.t]}:: {:ok, [{Calendar.date(), String.t}]} | {:error, String.t}
   def timeline(ctx, checkin) when is_binary(checkin) do

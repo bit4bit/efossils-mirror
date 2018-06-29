@@ -23,7 +23,11 @@ defmodule EfossilsWeb.RepositoryController do
     |> Accounts.Repository.prepare_attrs
 
     result = with {:ok, repository} <- Accounts.create_repository(repository_params),
-                  {:ok, ctx} <- Efossils.Command.init_repository(repository.lower_name, conn.assigns[:current_user].lower_name),
+                  {:ok, ctx} <- Accounts.context_repository(repository, default_username: conn.assigns[:current_user].email),
+                  # TODO: EfossilsWeb.Proxy.Plug tambien hace uso del mismo esquema email para usuario y
+                  # contraseña
+                  {:ok, _} <- Efossils.Command.password_user(ctx, conn.assigns[:current_user].email, conn.assigns[:current_user].email),
+                  {:ok, _} <- Efossils.Command.capabilities_user(ctx, conn.assigns[:current_user].email, "dei"),
                   {:ok, _} <- Accounts.update_repository(repository, Enum.into(ctx, %{})),
       do: {:ok, repository}
     
@@ -31,7 +35,7 @@ defmodule EfossilsWeb.RepositoryController do
       {:ok, repository} ->
         conn
         |> put_flash(:info, "Repository created successfully.")
-        |> redirect(to: EfossilsWeb.Utils.fossil_path("index", conn.assigns[:current_user], repository))
+        |> redirect(to: "/dashboard")
       {:error, %Ecto.Changeset{} = changeset} ->
         licenses = Accounts.Repository.licenses
         users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))

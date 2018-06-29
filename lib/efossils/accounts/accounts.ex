@@ -11,8 +11,9 @@ defmodule Efossils.Accounts do
   @doc """
   Inicializa gestión del repository por medio de `Efossils.Command`.
   """
-  def context_repository(repo) do
-    Efossils.Command.init_repository(Integer.to_string(repo.id), Integer.to_string(repo.owner_id))
+  def context_repository(repo, opts \\ []) do
+    Efossils.Command.init_repository(Integer.to_string(repo.id),
+      Integer.to_string(repo.owner_id), opts)
   end
   
   @doc """

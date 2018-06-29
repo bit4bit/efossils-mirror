@@ -32,10 +32,13 @@
 
 
       <div class="ui container">
-
-        <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
-        <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
         
+        <%= if message = get_flash(@conn, :info) do %>
+          <p class="ignored info ui message" role="message"><%= message %></p>
+        <% end %>
+        <%= if message = get_flash(@conn, :error) do %>
+          <p class="danger ui message" role="message"><%= message%></p>
+        <% end %>
         <main role="main">
           <%= render @view_module, @view_template, assigns %>
         </main>
