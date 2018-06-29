@@ -53,7 +53,9 @@ defmodule EfossilsWeb.Router do
 
     get "/dashboard", PageController, :dashboard
     get "/", PageController, :dashboard
-    resources "/repositories", RepositoryController
+    resources "/repositories", RepositoryController do
+      put "/delete", RepositoryController, :delete_repository
+    end
 
   end
 

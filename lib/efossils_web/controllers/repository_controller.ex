@@ -55,5 +55,39 @@ defmodule EfossilsWeb.RepositoryController do
     repository = Accounts.get_repository!(id)
     render(conn, "show.html", repository: repository)
   end
-  
+
+  def edit(conn, %{"id" => id}) do
+    repository = Accounts.get_repository!(conn.assigns[:current_user], id)
+    changeset = Accounts.change_repository(repository)
+    render(conn, "edit.html", repository: repository, changeset: changeset)
+  end
+
+  def update(conn, %{"id" => id, "repository" => params}) do
+    repository = Accounts.get_repository!(conn.assigns[:current_user], id)
+    with_owner_params = Map.put(params, "owner_id", conn.assigns[:current_user].id)
+    case Accounts.update_repository(repository, with_owner_params) do
+      {:ok, repository} ->
+        conn
+        |> put_flash(:info, "Repository updated successfully.")
+        |> redirect(to: "/dashboard")
+      {:error, %Ecto.Changeset{} = changeset} ->
+        render(conn, "edit.html", repository: repository, changeset: changeset)
+    end
+  end
+
+  def delete_repository(conn, %{"repository_id" => id, "repository" => params}) do
+    repository = Accounts.get_repository!(conn.assigns[:current_user], id)
+    changeset = Accounts.change_repository(repository)
+    if repository.name == String.trim(params["confirm_name"]) do
+      {:ok, _} = Accounts.delete_repository(repository)
+      {:ok, ctx} = Accounts.context_repository(repository)
+      {:ok, _} = Efossils.Command.delete_repository(ctx)
+      conn
+      |> put_flash(:info, "Repository delete successfully.")
+      |> redirect(to: "/dashboard")
+    else
+      Plug.Conn.assign(conn, :delete_error, "Please verify")
+      |> render("edit.html", repository: repository, changeset: changeset)
+    end
+  end
 end

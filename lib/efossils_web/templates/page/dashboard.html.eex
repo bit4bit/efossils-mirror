@@ -5,6 +5,7 @@
     <div class="column">
       <div class="ui fluid card">
         <div class="content">
+          <a href="<%= repository_path(@conn, :edit, repository) %>"><i class="right floated octicon octicon-tools"></i></a>
           <div class="header"><%= repository.lower_name %></div>
         </div>
         <div class="content">

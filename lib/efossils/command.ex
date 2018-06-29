@@ -47,6 +47,14 @@ defmodule Efossils.Command do
     end
   end
 
+  @spec delete_repository(context()):: {:ok, context()} | {:error, File.posix()}
+  def delete_repository(ctx) do
+    case File.rm(Keyword.get(ctx, :db_path)) do
+      :ok -> {:ok, ctx}
+      err -> err
+    end
+  end
+  
   @doc """
   Crea un nuevo usuario en repositorio, si el usuario ya existe actualiza contrasena del mismo.
   Se utiliza `contact_info` como `id` de relacion, con plataforma.

@@ -54,6 +54,10 @@ defmodule Efossils.Accounts do
     Repo.get_by!(Repository, lower_name: name)
     |> Repo.preload([:base_repository, :owner])
   end
+  def get_repository!(owner, id) do
+    Repo.get_by!(Repository, owner_id: owner.id, id: id)
+    |> Repo.preload([:base_repository, :owner])
+  end
   @doc """
   Creates a repository.
 
@@ -103,7 +107,13 @@ defmodule Efossils.Accounts do
 
   """
   def delete_repository(%Repository{} = repository) do
-    Repo.delete(repository)
+    Repo.transaction fn ->
+      Repo.delete_all(from(c in Efossils.Accounts.Collaboration,
+            where: c.repository_id == ^repository.id))
+      Repo.delete_all(from(c in Efossils.Accounts.Star,
+            where: c.repository_id == ^repository.id))
+      Repo.delete!(repository)
+    end
   end
 
   @doc """
