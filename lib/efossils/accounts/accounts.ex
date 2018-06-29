@@ -9,6 +9,13 @@ defmodule Efossils.Accounts do
   alias Efossils.Accounts.Repository
 
   @doc """
+  Inicializa gestión del repository por medio de `Efossils.Command`.
+  """
+  def context_repository(repo) do
+    Efossils.Command.init_repository(Integer.to_string(repo.id), Integer.to_string(repo.owner_id))
+  end
+  
+  @doc """
   Returns the list of repositories.
 
   ## Examples
@@ -23,7 +30,7 @@ defmodule Efossils.Accounts do
 
   def list_repositories_by_owner(owner) do
     Repo.all(from r in Repository, where: r.owner_id == ^owner.id)
-    |> Repo.preload([:base_repository])
+    |> Repo.preload([:base_repository, :owner])
   end
   
   @doc """
@@ -40,8 +47,11 @@ defmodule Efossils.Accounts do
       ** (Ecto.NoResultsError)
 
   """
-  def get_repository!(id), do: Repo.get!(Repository, id)
-
+  def get_repository!(id), do: Repo.get!(Repository, id) |> Repo.preload([:base_repository, :owner])
+  def get_repository_by_name!(name) do
+    Repo.get_by!(Repository, lower_name: name)
+    |> Repo.preload([:base_repository, :owner])
+  end
   @doc """
   Creates a repository.
 

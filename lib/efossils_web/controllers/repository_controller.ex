@@ -31,7 +31,7 @@ defmodule EfossilsWeb.RepositoryController do
       {:ok, repository} ->
         conn
         |> put_flash(:info, "Repository created successfully.")
-        |> redirect(to: repository_path(conn, :proxy, repository))
+        |> redirect(to: EfossilsWeb.Utils.fossil_path("index", conn.assigns[:current_user], repository))
       {:error, %Ecto.Changeset{} = changeset} ->
         licenses = Accounts.Repository.licenses
         users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))

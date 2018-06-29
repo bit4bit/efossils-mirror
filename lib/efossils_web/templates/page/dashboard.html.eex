@@ -1,16 +1,30 @@
 <h2>Dashboard</h2>
-<div class="ui two column grid">
-  <div class="column">
-    <h2>contenido..</h2>
-  </div>
-  <div class="column">
+<div class="ui three column grid">
+
   <%=  for repository <- @repositories do %>
-    <div class="attached ui segment">
-       <%= repository.name %>
-      <a href="/fossil/user/<%= @current_user.lower_name%>/repository/<%=  repository.lower_name%>/index">
+    <div class="column">
+      <div class="ui fluid card">
+        <div class="content">
+          <div class="header"><%= repository.lower_name %></div>
+        </div>
+        <div class="content">
+          <h4 class="ui sub header">Timeline</h4>
+          <div class="ui small feed">
+            <div class="event">
+              <div class="content">
+                <div class="summary">
+                  <%= render "timeline.html", timeline: repository_last_day_timeline(repository) %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="extra content">
+          <a href="<%= EfossilsWeb.Utils.fossil_path("index", repository.owner, repository) %>" class="ui button">
         To Fossil
-      </a>
+          </a>
+        </div>
+      </div>
     </div>
   <% end %>
-  </div>
 </div>

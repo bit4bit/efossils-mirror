@@ -16,7 +16,7 @@ defmodule Efossils.Command do
   @doc """
   Inicializa un repositorio
   """
-  @spec init_repository(String.t, String.t):: {:ok, String.t} | {:error, String.t}
+  @spec init_repository(String.t, String.t):: {:ok, context()} | {:error, String.t}
   def init_repository(name, group) do
     start_fossil_pool()
     
@@ -130,10 +130,42 @@ defmodule Efossils.Command do
   end
 
   @spec timeline(context(), Calendar.date()):: %{Calendar.date() => [String.t]}:: {:ok, [{Calendar.date(), String.t}]} | {:error, String.t}
-  def timeline(ctx, date) do
-    case cmd(ctx, ["timeline", "-W", "0", "-n", "0", Date.to_string(date)]) do
+  def timeline(ctx, checkin) when is_binary(checkin) do
+    db_path = Keyword.get(ctx, :db_path)
+    case cmd(ctx, ["timeline", "-R", db_path, "-W", "0", "-n", "0", checkin]) do
       {stdout, 0} ->
-        {:ok, {date, String.split(stdout, "\n") |> tl}}
+        {:ok, {checkin, String.split(stdout, "\n", trim: true) |> tl}}
+      {stdout, _} ->
+        {:error, stdout}
+    end
+  end
+  def timeline(ctx, date) do
+    timeline(ctx, Date.to_string(date))
+  end
+
+  def last_day_timeline(ctx) do
+    db_path = Keyword.get(ctx, :db_path)
+    case cmd(ctx, ["timeline", "-R", db_path, "-W", "0"]) do
+      {stdout, 0} ->
+        series = Enum.map_reduce(String.split(stdout, "\n", trim: true), nil,
+          fn line, last_date ->
+            if String.starts_with?(line, "===") do
+              date = String.replace(line, "=", "") |> String.trim()
+              {{date, nil}, date}
+            else
+              {{last_date, String.trim(line)}, last_date}
+            end
+        end)
+        |> elem(0)
+
+        {last_date, nil} = List.first(series)
+        timelines = Enum.filter(series |> tl, fn {date, line} -> date == last_date end)
+        |> Enum.reduce([], fn {date, line}, acc ->
+          acc ++ [line]
+        end)
+        # se elimina ultima linea
+        |> Enum.reverse |> tl |> Enum.reverse
+        {:ok, {last_date, timelines}}
       {stdout, _} ->
         {:error, stdout}
     end
