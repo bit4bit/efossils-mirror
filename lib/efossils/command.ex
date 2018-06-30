@@ -139,7 +139,22 @@ defmodule Efossils.Command do
                "PUT" -> :put
                "DELETE" -> :delete
              end
-    HTTPoison.request(method, remote_url, body, [{"Content-Type", content_type}], opts)
+    # HACK: reemplaza usuario por el logeado
+    username = Keyword.get(ctx, :default_username)
+
+    
+    {:ok, dbody} = blob_uncompress(ctx, body)
+    {:ok, cbody} = if Regex.match?(~r/U .+/, dbody) do
+      # * si se reemplaza el contenido wrong hash
+      # * si se reemplaza el usuario, y se con un *fossil*
+      # modificado para omitir el error del hash, igualmente
+      # saca error.
+      rbody = Regex.replace(~r/U [^\n]+/, dbody, "U #{username}")
+      blob_compress(ctx, rbody)
+    else
+      {:ok, body}
+    end
+    HTTPoison.request(method, remote_url, cbody, [{"Content-Type", content_type}], opts)
   end
 
   @doc """
@@ -226,7 +241,43 @@ defmodule Efossils.Command do
         {:error, stdout}
     end
   end
+
+  defp blob_uncompress(ctx, nil) do
+    blob_uncompress(ctx, "")
+  end
+  defp blob_uncompress(ctx, indata) when is_binary(indata) do
+    tmp_dir = System.tmp_dir!
+    infile = Path.join(tmp_dir, "compress")
+    outfile = Path.join(tmp_dir, "uncompress")
+    File.write!(infile, indata)
+    case cmd(ctx, ["test-uncompress", infile, outfile]) do
+      {_, 0} ->
+        outdata = File.read!(outfile)
+        File.rm!(infile)
+        File.rm!(outfile)
+        {:ok, outdata}
+      {stdout, _} ->
+        {:error, stdout}
+    end
+  end
+  defp blob_uncompress(ctx, _), do: blob_uncompress(ctx, "")
   
+  defp blob_compress(ctx, indata) do
+    tmp_dir = System.tmp_dir!
+    infile = Path.join(tmp_dir, "uncompress")
+    outfile = Path.join(tmp_dir, "compress")
+    File.write!(infile, indata)
+    case cmd(ctx, ["test-compress", infile, outfile]) do
+      {_, 0} ->
+        outdata = File.read!(outfile)
+        File.rm!(infile)
+        File.rm!(outfile)
+        {:ok, outdata}
+      {stdout, _} ->
+        {:error, stdout}
+    end
+  end
+
   defp cmd(ctx, args, opts \\ []) do
     username = Keyword.get(opts, :username, Keyword.get(ctx, :default_username))
     env = [{"HOME", Keyword.get(ctx, :work_path)},

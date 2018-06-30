@@ -96,6 +96,7 @@ defmodule EfossilsWeb.Proxy.Router do
              {username, _} ->
                Efossils.Command.set_username(rctx, username)
            end
+
     case Efossils.Command.request_http(rctx, credentials, baseurl,
           conn.method, url, body, req_headers["content-type"]) do
       {:ok, response} ->
