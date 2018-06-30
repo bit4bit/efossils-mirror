@@ -26,6 +26,7 @@ config :efossils,
   ecto_repos: [Efossils.Repo],
   federated_name: System.get_env("EFOSSILS_FEDERATED_NAME"),
   fossil_bin: System.get_env("EFOSSILS_FOSSIL_BIN"),
+  fossil_base_url: System.get_env("EFOSSILS_FOSSIL_BASE_URL"),
   fossil_repositories_path: System.get_env("EFOSSILS_REPOSITORY_PATH"),
   fossil_work_path: System.get_env("EFOSSILS_WORK_PATH"),
   fossil_user_admin: "efossils_admin"

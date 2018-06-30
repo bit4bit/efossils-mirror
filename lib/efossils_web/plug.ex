@@ -80,7 +80,6 @@ defmodule EfossilsWeb.Proxy.Router do
     # FIXME: esto puede es una posible amenaza de seguridad ya que este string se pasa
     #como argumento al commando *fossil*.
     fossil_base_url = EfossilsWeb.Utils.fossil_path("", repository.owner, repository) |> String.trim("/")
-    baseurl = "http://#{conn.host}:#{conn.port}/#{fossil_base_url}"
 
     url = "/" <> Enum.join(rest,"/") <> "?" <> conn.query_string
     req_headers = Enum.into(conn.req_headers, %{})
@@ -97,7 +96,7 @@ defmodule EfossilsWeb.Proxy.Router do
                Efossils.Command.set_username(rctx, username)
            end
 
-    case Efossils.Command.request_http(rctx, credentials, baseurl,
+    case Efossils.Command.request_http(rctx, credentials, fossil_base_url,
           conn.method, url, body, req_headers["content-type"]) do
       {:ok, response} ->
         headers = Enum.into(response.headers, %{})
