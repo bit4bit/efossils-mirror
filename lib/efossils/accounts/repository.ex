@@ -27,6 +27,7 @@ defmodule Efossils.Accounts.Repository do
   def changeset(repository, attrs) do
     repository
     |> cast(attrs, [:lower_name, :name, :description, :website, :num_watchers, :num_stars, :num_forks, :is_private, :size, :license, :owner_id, :fossil_extras])
+    |> Efossils.Utils.build_lower_name()
     |> cast_assoc(:owner)
     |> cast_assoc(:base_repository)
     |> validate_required([:name, :is_private])
