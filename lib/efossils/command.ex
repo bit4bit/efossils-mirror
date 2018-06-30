@@ -18,9 +18,21 @@ defmodule Efossils.Command do
   """
   @spec init_repository(String.t, String.t):: {:ok, context()} | {:error, String.t}
   def init_repository(name, group, opts \\ []) do
-    group_path = Path.join([@priv_path, @repositories_path, group])
+    repositories_path = if File.exists?(@repositories_path) do
+      @repositories_path
+    else
+      Application.app_dir(:efossils, @repositories_path)
+    end
+    
+    work_path = if File.exists?(@work_path) do
+      @work_path
+    else
+      Application.app_dir(:efossils, @work_path)
+    end
+      
+    group_path = Path.join([repositories_path, group])
     File.mkdir_p!(group_path)
-    work_path = Path.join([@priv_path, @work_path, group, name])
+    work_path = Path.join([work_path, group, name])
     File.mkdir_p!(work_path)
     db_path = Path.join([group_path, "#{name}.fossil"])
     
