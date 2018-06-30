@@ -66,15 +66,16 @@ defmodule EfossilsWeb.Proxy.Router do
   end
   
   defp proxify(conn, rest) do
-    %{"repository" => repository_name, "user" => username} = conn.path_params
+    %{"repository" => repository_name} = conn.path_params
     repository = Efossils.Accounts.get_repository_by_name!(repository_name)
-    username = repository.owner.lower_name
+
     {:ok, rctx} = Efossils.Accounts.context_repository(repository)
     credentials = case conn.assigns[:current_user] do
                     nil -> nil
                     current_user ->
                       {current_user.lower_name, current_user.email}
                   end
+
     # TODO: http://localhost:4000/fossil tomar de peticion
     # FIXME: esto puede es una posible amenaza de seguridad ya que este string se pasa
     #como argumento al commando *fossil*.
@@ -88,6 +89,12 @@ defmodule EfossilsWeb.Proxy.Router do
                Enum.into(stream_body(conn), "")
              _ ->
                {:multipart, Map.to_list(conn.body_params)}
+           end
+
+    rctx = case credentials do
+             nil -> rctx
+             {username, _} ->
+               Efossils.Command.set_username(rctx, username)
            end
     case Efossils.Command.request_http(rctx, credentials, baseurl,
           conn.method, url, body, req_headers["content-type"]) do

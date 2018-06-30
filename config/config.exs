@@ -9,6 +9,7 @@ use Mix.Config
 config :efossils,
   ecto_repos: [Efossils.Repo],
   federated_name: "Efossils",
+  fossil_bin: "fossil",
   fossil_repositories_path: "/data/repositories",
   fossil_work_path: "/data/works",
   fossil_user_admin: "efossils_admin"

@@ -4,7 +4,7 @@ defmodule Efossils.Command do
   """
   require Logger
   
-  @command "fossil"
+  @command Application.get_env(:efossils, :fossil_bin)
   
   @repositories_path Path.absname(Application.get_env(:efossils, :fossil_repositories_path))
   @work_path Path.absname(Application.get_env(:efossils, :fossil_work_path))
@@ -18,9 +18,6 @@ defmodule Efossils.Command do
   """
   @spec init_repository(String.t, String.t):: {:ok, context()} | {:error, String.t}
   def init_repository(name, group, opts \\ []) do
-    start_fossil_pool()
-    
-
     group_path = Path.join([@priv_path, @repositories_path, group])
     File.mkdir_p!(group_path)
     work_path = Path.join([@priv_path, @work_path, group, name])
@@ -36,6 +33,8 @@ defmodule Efossils.Command do
       {stdout, 0} ->
         if String.contains?(stdout, "admin-user") do
           {:ok, _} = force_setting(ctx, "http_authentication_ok", "1")
+          {:ok, _} = force_setting(ctx, "remote_user_ok", "1")
+
           {:ok, ctx}
         else
           {:error, stdout}
@@ -47,6 +46,11 @@ defmodule Efossils.Command do
     end
   end
 
+  @spec set_username(context(), String.t) :: context()
+  def set_username(ctx, username) do
+    Keyword.put(ctx, :default_username, username)
+  end
+  
   @spec delete_repository(context()):: {:ok, context()} | {:error, File.posix()}
   def delete_repository(ctx) do
     case File.rm(Keyword.get(ctx, :db_path)) do
@@ -126,7 +130,8 @@ defmodule Efossils.Command do
              credentials ->
                [hackney: [basic_auth: credentials]]
            end
-    fossil_url = get_fossil_url_from_pool(ctx, baseurl)
+    #fossil_url = get_fossil_url_from_pool(ctx, baseurl)
+    fossil_url = Efossils.Http.ephimeral(ctx, baseurl)
     remote_url = fossil_url <> url
     method = case method do
                "GET" -> :get
@@ -222,35 +227,11 @@ defmodule Efossils.Command do
     end
   end
   
-  defp start_fossil_pool() do
-    Agent.start_link(fn -> Map.new() end, name: __MODULE__)
-  end
-
-  defp get_db_path_from_pool(db_path) do
-    Agent.get(__MODULE__, fn map ->
-      Map.get(map, db_path)
-    end)
-  end
-  
-  defp get_fossil_url_from_pool(ctx, baseurl) do
-    db_path = Keyword.get(ctx, :db_path)
-    
-    case get_db_path_from_pool(db_path) do
-      nil ->
-        # TODO: el proceso queda activo aunque se detenga la plataforma
-        %Porcelain.Process{err: nil, out: stream} = Porcelain.spawn(@command, ["server", "--nossl", "--baseurl", baseurl, db_path], [out: :stream])
-        ["Listening for HTTP requests on TCP port " <> ports] = Enum.take(stream, 1)
-        {port, _} = Integer.parse(ports)
-        url = "http://127.0.0.1:#{port}"
-        Agent.update(__MODULE__, &Map.put(&1, db_path, url))
-        url
-      url -> url
-    end
-  end
-
   defp cmd(ctx, args, opts \\ []) do
+    username = Keyword.get(opts, :username, Keyword.get(ctx, :default_username))
     env = [{"HOME", Keyword.get(ctx, :work_path)},
-           {"USER", Keyword.get(ctx, :default_username)}]
+           {"FOSSIL_USER", username},
+           {"REMOTE_USER", username}]
     System.cmd("fossil", args, [stderr_to_stdout: true, env: env] ++ opts)
   end
 end
