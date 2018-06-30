@@ -4,11 +4,6 @@ defmodule Efossils.Command do
   """
   require Logger
   
-  @command Application.get_env(:efossils, :fossil_bin)
-  
-  @repositories_path Path.absname(Application.get_env(:efossils, :fossil_repositories_path))
-  @work_path Path.absname(Application.get_env(:efossils, :fossil_work_path))
-  @username_admin Application.get_env(:efossils, :fossil_user_admin)
   @priv_path Application.app_dir(:efossils, "priv")
   @type context :: any()
   
@@ -18,16 +13,16 @@ defmodule Efossils.Command do
   """
   @spec init_repository(String.t, String.t):: {:ok, context()} | {:error, String.t}
   def init_repository(name, group, opts \\ []) do
-    group_path = Path.join([@priv_path, @repositories_path, group])
+    group_path = Path.join([get_repositories_path, group])
     File.mkdir_p!(group_path)
-    work_path = Path.join([@priv_path, @work_path, group, name])
-    File.mkdir_p!(work_path)
+    work_path = Path.join([get_work_path, group, name])
+    File.mkdir_p!(get_work_path)
     db_path = Path.join([group_path, "#{name}.fossil"])
     
     ctx = [db_path: db_path,
            work_path: work_path,
            group_path: group_path,
-           default_username: Keyword.get(opts, :default_username, @username_admin),
+           default_username: Keyword.get(opts, :default_username, get_username_admin),
           ]
     case cmd(ctx, ["init", db_path]) do
       {stdout, 0} ->
@@ -139,7 +134,22 @@ defmodule Efossils.Command do
                "PUT" -> :put
                "DELETE" -> :delete
              end
-    HTTPoison.request(method, remote_url, body, [{"Content-Type", content_type}], opts)
+    # HACK: reemplaza usuario por el logeado
+    username = Keyword.get(ctx, :default_username)
+
+    
+    {:ok, dbody} = blob_uncompress(ctx, body)
+    {:ok, cbody} = if Regex.match?(~r/U .+/, dbody) do
+      # * si se reemplaza el contenido wrong hash
+      # * si se reemplaza el usuario, y se con un *fossil*
+      # modificado para omitir el error del hash, igualmente
+      # saca error.
+      rbody = Regex.replace(~r/U [^\n]+/, dbody, "U #{username}")
+      blob_compress(ctx, rbody)
+    else
+      {:ok, body}
+    end
+    HTTPoison.request(method, remote_url, cbody, [{"Content-Type", content_type}], opts)
   end
 
   @doc """
@@ -226,12 +236,74 @@ defmodule Efossils.Command do
         {:error, stdout}
     end
   end
+
+  defp blob_uncompress(ctx, nil) do
+    blob_uncompress(ctx, "")
+  end
+  defp blob_uncompress(ctx, indata) when is_binary(indata) do
+    tmp_dir = System.tmp_dir!
+    infile = Path.join(tmp_dir, "compress")
+    outfile = Path.join(tmp_dir, "uncompress")
+    File.write!(infile, indata)
+    case cmd(ctx, ["test-uncompress", infile, outfile]) do
+      {_, 0} ->
+        outdata = File.read!(outfile)
+        File.rm!(infile)
+        File.rm!(outfile)
+        {:ok, outdata}
+      {stdout, _} ->
+        {:error, stdout}
+    end
+  end
+  defp blob_uncompress(ctx, _), do: blob_uncompress(ctx, "")
   
+  defp blob_compress(ctx, indata) do
+    tmp_dir = System.tmp_dir!
+    infile = Path.join(tmp_dir, "uncompress")
+    outfile = Path.join(tmp_dir, "compress")
+    File.write!(infile, indata)
+    case cmd(ctx, ["test-compress", infile, outfile]) do
+      {_, 0} ->
+        outdata = File.read!(outfile)
+        File.rm!(infile)
+        File.rm!(outfile)
+        {:ok, outdata}
+      {stdout, _} ->
+        {:error, stdout}
+    end
+  end
+
   defp cmd(ctx, args, opts \\ []) do
     username = Keyword.get(opts, :username, Keyword.get(ctx, :default_username))
     env = [{"HOME", Keyword.get(ctx, :work_path)},
            {"FOSSIL_USER", username},
            {"REMOTE_USER", username}]
     System.cmd("fossil", args, [stderr_to_stdout: true, env: env] ++ opts)
+  end
+
+  defp get_repositories_path do
+    path = Path.absname(Application.get_env(:efossils, :fossil_repositories_path))
+     if File.exists?(path) do
+       path
+    else
+      Application.app_dir(:efossils, path)
+    end
+  end
+
+  defp get_work_path do
+    path = Path.absname(Application.get_env(:efossils, :fossil_work_path))
+    if File.exists?(path) do
+      path
+    else
+      Application.app_dir(:efossils, path)
+    end
+  end
+
+  defp get_username_admin do
+    Application.get_env(:efossils, :fossil_user_admin)
+  end
+  
+  defp get_command do
+    Application.get_env(:efossils, :fossil_bin)
   end
 end

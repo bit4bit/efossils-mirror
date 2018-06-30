@@ -15,8 +15,20 @@ use Mix.Config
 # which you typically run after static files are built.
 config :efossils, EfossilsWeb.Endpoint,
   load_from_system_env: true,
-  url: [host: "example.com", port: 80],
-  cache_static_manifest: "priv/static/cache_manifest.json"
+  http: [port: {:system, "PORT"}],
+  url: [host: "localhost", port: {:system, "PORT"}],
+  cache_static_manifest: "priv/static/cache_manifest.json",
+  server: true,
+  root: ".",
+  version: Application.spec(:phoenix_distillery, :vsn)
+
+config :efossils,
+  ecto_repos: [Efossils.Repo],
+  federated_name: System.get_env("EFOSSILS_FEDERATED_NAME"),
+  fossil_bin: System.get_env("EFOSSISLS_FOSSIL_BIN"),
+  fossil_repositories_path: System.get_env("EFOSSILS_REPOSITORY_PATH"),
+  fossil_work_path: System.get_env("EFOSSILS_WORK_PATH"),
+  fossil_user_admin: "efossils_admin"
 
 # Do not print debug messages in production
 config :logger, level: :info

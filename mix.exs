@@ -50,7 +50,8 @@ defmodule Efossils.Mixfile do
       {:coherence, "~> 0.5"},
       {:credo, "~> 0.9.1", only: [:dev, :test], runtime: false},
       {:porcelain, "~> 2.0"},
-      {:httpoison, "~> 1.2"}
+      {:httpoison, "~> 1.2"},
+      {:distillery, "~> 1.5", runtime: false}
     ]
   end
 
