@@ -31,7 +31,10 @@ defmodule Efossils.Accounts do
   end
 
   def list_repositories_by_owner(owner) do
-    Repo.all(from r in Repository, where: r.owner_id == ^owner.id)
+    Repo.all(from r in Repository,
+      left_join: colab in Efossils.Accounts.Collaboration,
+      on: colab.repository_id == r.id,
+      where: r.owner_id == ^owner.id or colab.user_id == ^owner.id)
     |> Repo.preload([:base_repository, :owner])
   end
   
@@ -144,6 +147,23 @@ defmodule Efossils.Accounts do
     Repo.all(Collaboration)
   end
 
+  def count_collaborations(repo_id) when is_integer(repo_id) do
+    Repo.aggregate(from(c in Collaboration, where: c.repository_id == ^repo_id), :count, :id)
+  end
+  
+  def count_collaborations(%Repository{} = repository) do
+    Repo.aggregate(from(c in Collaboration, where: c.repository_id == ^repository.id), :count, :id)
+  end
+  
+  def list_collaborations(%Repository{} = repository) do
+    Repo.all(from c in Collaboration, where: c.repository_id == ^repository.id)
+    |> Repo.preload([:user])
+  end
+  def list_collaborations(%Efossils.Coherence.User{} = user) do
+    Repo.all(from c in Collaboration, where: c.user_id == ^user.id)
+    |> Repo.preload([:user])
+  end
+
   @doc """
   Gets a single collaboration.
 
@@ -159,7 +179,10 @@ defmodule Efossils.Accounts do
 
   """
   def get_collaboration!(id), do: Repo.get!(Collaboration, id)
-
+  def get_collaboration!(repo, id) do
+    Repo.get_by!(Collaboration, repository_id: repo.id, user_id: id)
+    |> Repo.preload([:user])
+  end
   @doc """
   Creates a collaboration.
 
@@ -326,5 +349,12 @@ defmodule Efossils.Accounts do
 
   def list_users do
     Repo.all(User)
+  end
+
+  def get_user_by_name!(name) do
+    Repo.get_by!(User, name: name)
+  end
+  def get_user_by_name(name) do
+    Repo.get_by(User, name: name)
   end
 end

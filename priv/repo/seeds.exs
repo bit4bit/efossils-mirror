@@ -12,6 +12,18 @@
 
 Efossils.Repo.delete_all Efossils.Coherence.User
 
-Efossils.Coherence.User.changeset(%Efossils.Coherence.User{}, %{name: "Efossils user", lower_name: "efossils_main", email: "efossils@local.local", password: "efossils", password_confirmation: "efossils"})
+Efossils.Coherence.User.changeset(%Efossils.Coherence.User{}, %{name: "Efossils user",
+                                                                lower_name: "efossils_main",
+                                                                email: "efossils@local.local",
+                                                                password: "efossils",
+                                                                password_confirmation: "efossils"})
+|> Efossils.Repo.insert!
+|> Coherence.ControllerHelpers.confirm!
+
+Efossils.Coherence.User.changeset(%Efossils.Coherence.User{}, %{name: "Efossils Collaborator",
+                                                                lower_name: "efossils_collaborator",
+                                                                email: "efossilscollaborator@local.local",
+                                                                password: "efossils",
+                                                                password_confirmation: "efossils"})
 |> Efossils.Repo.insert!
 |> Coherence.ControllerHelpers.confirm!

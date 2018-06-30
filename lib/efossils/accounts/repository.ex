@@ -38,4 +38,5 @@ defmodule Efossils.Accounts.Repository do
     attrs
     |> Map.put("lower_name", String.downcase(attrs["name"]))
   end
+
 end

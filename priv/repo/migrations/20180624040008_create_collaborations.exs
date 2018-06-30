@@ -12,6 +12,7 @@ defmodule Efossils.Repo.Migrations.CreateCollaborations do
       timestamps()
     end
 
+    create unique_index(:collaborations, [:repository_id, :user_id])
     create index(:collaborations, [:repository_id])
     create index(:collaborations, [:user_id])
   end

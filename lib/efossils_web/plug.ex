@@ -73,10 +73,7 @@ defmodule EfossilsWeb.Proxy.Router do
     credentials = case conn.assigns[:current_user] do
                     nil -> nil
                     current_user ->
-                      # {:ok, _rctx} = Efossils.Command.new_user(rctx,
-                      # current_user.email, current_user.id, current_user.email)
-                      # {current_user.email, current_user.email}
-                      {current_user.email, current_user.email}
+                      {current_user.lower_name, current_user.email}
                   end
     # TODO: http://localhost:4000/fossil tomar de peticion
     # FIXME: esto puede es una posible amenaza de seguridad ya que este string se pasa

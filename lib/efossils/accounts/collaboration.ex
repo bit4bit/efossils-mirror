@@ -19,5 +19,6 @@ defmodule Efossils.Accounts.Collaboration do
     collaboration
     |> cast(attrs, [:capabilities, :fossil_username, :fossil_password, :user_id, :repository_id])
     |> validate_required([:capabilities, :fossil_username, :fossil_password])
+    |> unique_constraint(:repository_id, name: :collaborations_repository_id_user_id_index)
   end
 end

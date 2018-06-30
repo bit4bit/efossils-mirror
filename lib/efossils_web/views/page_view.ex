@@ -2,6 +2,10 @@ defmodule EfossilsWeb.PageView do
   use EfossilsWeb, :view
   alias Efossils.Accounts
 
+  def repository_num_collaborators(repo) do
+    Accounts.count_collaborations(repo)
+  end
+  
   def repository_last_day_timeline(repo) do
     {:ok, ctx} = Accounts.context_repository(repo)
     {:ok, {date, timeline}} = Efossils.Command.last_day_timeline(ctx)

@@ -54,7 +54,9 @@ defmodule EfossilsWeb.Router do
     get "/dashboard", PageController, :dashboard
     get "/", PageController, :dashboard
     resources "/repositories", RepositoryController do
-      put "/delete", RepositoryController, :delete_repository
+      put "/delete", RepositoryController, :delete_repository, as: :settings
+      post "/collaboration/add", RepositoryController, :collaboration_create, as: :collaboration
+      delete "/collaboration/:user_id/delete", RepositoryController, :collaboration_delete, as: :collaboration
     end
 
   end
