@@ -4,11 +4,6 @@ defmodule Efossils.Command do
   """
   require Logger
   
-  @command Application.get_env(:efossils, :fossil_bin)
-  
-  @repositories_path Path.absname(Application.get_env(:efossils, :fossil_repositories_path))
-  @work_path Path.absname(Application.get_env(:efossils, :fossil_work_path))
-  @username_admin Application.get_env(:efossils, :fossil_user_admin)
   @priv_path Application.app_dir(:efossils, "priv")
   @type context :: any()
   
@@ -18,28 +13,16 @@ defmodule Efossils.Command do
   """
   @spec init_repository(String.t, String.t):: {:ok, context()} | {:error, String.t}
   def init_repository(name, group, opts \\ []) do
-    repositories_path = if File.exists?(@repositories_path) do
-      @repositories_path
-    else
-      Application.app_dir(:efossils, @repositories_path)
-    end
-    
-    work_path = if File.exists?(@work_path) do
-      @work_path
-    else
-      Application.app_dir(:efossils, @work_path)
-    end
-      
-    group_path = Path.join([repositories_path, group])
+    group_path = Path.join([get_repositories_path, group])
     File.mkdir_p!(group_path)
-    work_path = Path.join([work_path, group, name])
-    File.mkdir_p!(work_path)
+    work_path = Path.join([get_work_path, group, name])
+    File.mkdir_p!(get_work_path)
     db_path = Path.join([group_path, "#{name}.fossil"])
     
     ctx = [db_path: db_path,
            work_path: work_path,
            group_path: group_path,
-           default_username: Keyword.get(opts, :default_username, @username_admin),
+           default_username: Keyword.get(opts, :default_username, get_username_admin),
           ]
     case cmd(ctx, ["init", db_path]) do
       {stdout, 0} ->
@@ -296,5 +279,31 @@ defmodule Efossils.Command do
            {"FOSSIL_USER", username},
            {"REMOTE_USER", username}]
     System.cmd("fossil", args, [stderr_to_stdout: true, env: env] ++ opts)
+  end
+
+  defp get_repositories_path do
+    path = Path.absname(Application.get_env(:efossils, :fossil_repositories_path))
+     if File.exists?(path) do
+       path
+    else
+      Application.app_dir(:efossils, path)
+    end
+  end
+
+  defp get_work_path do
+    path = Path.absname(Application.get_env(:efossils, :fossil_work_path))
+    if File.exists?(path) do
+      path
+    else
+      Application.app_dir(:efossils, path)
+    end
+  end
+
+  defp get_username_admin do
+    Application.get_env(:efossils, :fossil_user_admin)
+  end
+  
+  defp get_command do
+    Application.get_env(:efossils, :fossil_bin)
   end
 end
