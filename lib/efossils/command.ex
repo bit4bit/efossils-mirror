@@ -137,19 +137,7 @@ defmodule Efossils.Command do
     # HACK: reemplaza usuario por el logeado
     username = Keyword.get(ctx, :default_username)
 
-    
-    {:ok, dbody} = blob_uncompress(ctx, body)
-    {:ok, cbody} = if Regex.match?(~r/U .+/, dbody) do
-      # * si se reemplaza el contenido wrong hash
-      # * si se reemplaza el usuario, y se con un *fossil*
-      # modificado para omitir el error del hash, igualmente
-      # saca error.
-      rbody = Regex.replace(~r/U [^\n]+/, dbody, "U #{username}")
-      blob_compress(ctx, rbody)
-    else
-      {:ok, body}
-    end
-    HTTPoison.request(method, remote_url, cbody, [{"Content-Type", content_type}], opts)
+    HTTPoison.request(method, remote_url, body, [{"Content-Type", content_type}], opts)
   end
 
   @doc """
