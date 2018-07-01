@@ -119,14 +119,18 @@ defmodule EfossilsWeb.Proxy.Router do
   end
   defp proxify(conn, rest) do
     repository = conn.assigns[:current_repository]
-
+    current_user = conn.assigns[:current_user]
     {:ok, rctx} = Efossils.Accounts.context_repository(repository)
-    credentials = case conn.assigns[:current_user] do
-                    nil -> nil
-                    current_user ->
-                      {current_user.lower_name, current_user.email}
-                  end
-
+    credentials = cond do
+      current_user == nil -> nil
+      current_user.id == repository.owner_id ->
+        {current_user.lower_name, current_user.email}
+      Efossils.Accounts.is_user_collaborator_for_repository(current_user, repository) ->
+        {current_user.lower_name, current_user.email}
+      true ->
+        nil
+    end
+    
     # TODO: http://localhost:4000/fossil tomar de peticion
     # FIXME: esto puede es una posible amenaza de seguridad ya que este string se pasa
     #como argumento al commando *fossil*.

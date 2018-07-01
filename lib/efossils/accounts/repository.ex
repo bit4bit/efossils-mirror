@@ -19,7 +19,8 @@ defmodule Efossils.Accounts.Repository do
     field :fossil_extras, :map
     belongs_to :base_repository, Efossils.Accounts.Repository
     belongs_to :owner, Efossils.Coherence.User
-
+    has_many :collaborations, Efossils.Accounts.Collaboration
+    has_many :collaborations_users,  through: [:collaborations, :user]
     timestamps()
   end
 

@@ -119,7 +119,7 @@ defmodule EfossilsWeb.RepositoryController do
         case Accounts.create_collaboration(attrs) do
           {:ok, _}  ->
             {:ok, ctx} = Accounts.context_repository(repository)
-            {:ok, _ } = Efossils.Command.new_user(ctx, collaborator.lower_name, collaborator.id, collaborator.email)
+            {:ok, _} = Efossils.Command.new_user(ctx, collaborator.lower_name, collaborator.id, collaborator.email)
             {:ok, _} = Efossils.Command.capabilities_user(ctx, collaborator.lower_name, capabilities)
             conn
           {:error, _} ->

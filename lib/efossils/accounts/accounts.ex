@@ -359,4 +359,10 @@ defmodule Efossils.Accounts do
   def get_user_by_name(name) do
     Repo.get_by(User, name: name)
   end
+
+  def is_user_collaborator_for_repository(user, repository) do
+    Repo.aggregate(from( c in Collaboration,
+          where: c.repository_id == ^repository.id and c.user_id == ^user.id),
+      :count, :id)
+  end
 end
