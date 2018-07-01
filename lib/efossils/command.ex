@@ -16,7 +16,7 @@ defmodule Efossils.Command do
     group_path = Path.join([get_repositories_path, group])
     File.mkdir_p!(group_path)
     work_path = Path.join([get_work_path, group, name])
-    File.mkdir_p!(get_work_path)
+    File.mkdir_p!(work_path)
     db_path = Path.join([group_path, "#{name}.fossil"])
     
     ctx = [db_path: db_path,
