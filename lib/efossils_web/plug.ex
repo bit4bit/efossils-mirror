@@ -15,6 +15,30 @@ defmodule EfossilsWeb.Proxy.Router do
   plug :match
   plug :dispatch
 
+  match "/user/:user/repository/:repository/download*rest" do
+    conn
+    |> send_resp(403, "Forbidden")
+    |> halt
+  end
+
+  match "/user/:user/repository/:repository/tarball*rest" do
+    conn
+    |> send_resp(403, "Forbidden")
+    |> halt
+  end
+
+  match "/user/:user/repository/:repository/zip*rest" do
+    conn
+    |> send_resp(403, "Forbidden")
+    |> halt
+  end
+
+  match "/user/:user/repository/:repository/sqlar*rest" do
+    conn
+    |> send_resp(403, "Forbidden")
+    |> halt
+  end
+
   match "/user/:user/repository/:repository/xfer/*rest" do
     conn
     |> put_repository()
