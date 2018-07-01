@@ -8,7 +8,7 @@ defmodule EfossilsWeb.PageView do
   
   def repository_last_day_timeline(repo) do
     {:ok, ctx} = Accounts.context_repository(repo)
-    {:ok, {date, timeline}} = Efossils.Command.last_day_timeline(ctx)
+    {:ok, {date, timeline}} = Efossils.Command.last_day_timeline(ctx, 5)
     repository_timeline_parse(repo, {date, timeline})
   end
   

@@ -185,22 +185,22 @@ defmodule Efossils.Command do
   end
   
   @spec timeline(context(), Calendar.date()):: %{Calendar.date() => [String.t]}:: {:ok, [{Calendar.date(), String.t}]} | {:error, String.t}
-  def timeline(ctx, checkin) when is_binary(checkin) do
+  def timeline(ctx, checkin, limit \\ 0) when is_binary(checkin) do
     db_path = Keyword.get(ctx, :db_path)
-    case cmd(ctx, ["timeline", "-R", db_path, "-W", "0", "-n", "0", checkin]) do
+    case cmd(ctx, ["timeline", "-R", db_path, "-W", "0", "-n", Integer.to_string(limit), checkin]) do
       {stdout, 0} ->
         {:ok, {checkin, String.split(stdout, "\n", trim: true) |> tl}}
       {stdout, _} ->
         {:error, stdout}
     end
   end
-  def timeline(ctx, date) do
-    timeline(ctx, Date.to_string(date))
+  def timeline(ctx, date, limit) do
+    timeline(ctx, Date.to_string(date), limit)
   end
 
-  def last_day_timeline(ctx) do
+  def last_day_timeline(ctx, limit \\ 0) do
     db_path = Keyword.get(ctx, :db_path)
-    case cmd(ctx, ["timeline", "-R", db_path, "-W", "0"]) do
+    case cmd(ctx, ["timeline", "-R", db_path, "-W", "0", "-n", Integer.to_string(limit)]) do
       {stdout, 0} ->
         series = Enum.map_reduce(String.split(stdout, "\n", trim: true), nil,
           fn line, last_date ->
