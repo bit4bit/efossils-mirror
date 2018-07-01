@@ -1,8 +1,8 @@
 # The "skin" configuration exported from
-# repository "/home/bit4bit/policodigo/enetwork/efossil/../efossils.fossil"
-# on 2018-06-29 19:37:56
-config /config 3496
-1530301016 'css' value 'body {
+# repository "/tmp/test/../test.fossil"
+# on 2018-07-01 04:08:25
+config /config 3541
+1530417819 'css' value 'body {
     margin: 0 auto;
     min-width: 800px;
     padding: 0px 20px;
@@ -48,7 +48,7 @@ hr {
 .content h2 {
     font-size: 1.15em;
 }
-.content h2 {
+.content h3 {
     font-size: 1.05em;
     font-weight: bold;
 }
@@ -188,6 +188,10 @@ td.tktDspValue pre {
     white-space: pre-wrap;
 }
 
+span.timelineDetail {
+    font-size: 90%;
+}
+
 .footer {
     border-top: 1px solid #ccc;
     padding: 10px;
@@ -203,28 +207,16 @@ span.submenuctrl, span.submenuctrl input, select.submenuctrl {
   color: #777;
 }
 '
-config /config 1340
-1530301040 'header' value '<html>
-  <head>
-    <base href="$baseurl/$current_page" />
-    <title>$<project_name>: $<title></title>
-      <link rel="alternate" type="application/rss+xml" title="RSS Feed"
-            href="$home/timeline.rss" />
-      <link rel="stylesheet" href="$stylesheet_url" type="text/css"
-            media="screen" />
-  </head>
-
-  <body>
-    <div class="header">
-      <div class="title"><h1>$<project_name></h1>$<title></div>
-        <div class="status"><th1>
-     if {[info exists login]} {
-       html "$login\n"
-     }
-        </th1></div>
-    </div>
-
-    <div class="mainmenu">
+config /config 981
+1530417819 'header' value '<div class="header">
+  <div class="title"><h1>$<project_name></h1>$<title></div>
+    <div class="status"><th1>
+ if {[info exists login]} {
+   html "$login\n"
+ }
+    </th1></div>
+</div>
+<div class="mainmenu">
 <th1>
 proc menulink {url name} {
   upvar current_page current
@@ -257,21 +249,21 @@ if {[hascap s]} {
 } elseif {[hascap a]} {
   menulink /setup_ulist Users
 }
+menulink /search Search
 </th1></div>
 '
-config /config 224
-1530301016 'footer' value '<div class="footer">
+config /config 209
+1530417819 'footer' value '<div class="footer">
 This page was generated in about
 <th1>puts [expr {([utime]+[stime]+1000)/1000*0.001}]</th1>s by
 Fossil $release_version $manifest_version $manifest_date
 </div>
-</body></html>
 '
 config /config 149
-1530301016 'details' value 'timeline-arrowheads:        1
+1530417819 'details' value 'timeline-arrowheads:        1
 timeline-circle-nodes:      1
 timeline-color-graph-lines: 1
 white-foreground:           0
 '
 config /config 41
-1529810064 'timeline-plaintext' value '1'
+1530412643 'timeline-plaintext' value '1'
