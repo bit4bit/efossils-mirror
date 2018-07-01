@@ -10,7 +10,6 @@ defmodule Efossils.Http do
     {:ok, socket} = :gen_tcp.listen(0,
       [:binary, packet: :raw, active: :false, reuseaddr: true])
     {:ok, port} = :inet.port(socket)
-    IO.puts inspect Porcelain.Driver.Common.find_executable(@command)
     spawn(fn -> loop(socket, ctx, baseurl) end)
     "http://127.0.0.1:#{port}"
   end
@@ -22,7 +21,6 @@ defmodule Efossils.Http do
     env = [{"HOME", Keyword.get(ctx, :work_path)},
            {"FOSSIL_USER", username},
            {"REMOTE_USER", username}]
-    IO.puts inspect env
     proc = %Porcelain.Process{:err => nil} = Porcelain.spawn(@command, ["http", "--nossl", "--baseurl", baseurl, db_path], [in: :receive, out: {:send, pid}, env: env])
     {:ok, client} = :gen_tcp.accept(socket)
     :ok = :gen_tcp.controlling_process(client, self())
