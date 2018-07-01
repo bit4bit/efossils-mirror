@@ -28,6 +28,7 @@ defmodule EfossilsWeb.RepositoryController do
                     default_username: login_username),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "project-name", repository.name),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "project-description", repository.description),
+                  {:ok, _} <- Efossils.Command.force_setting(ctx, "short-project-name", repository.lower_name),
                   {:ok, _} <- Efossils.Command.setting(ctx, "default-perms", "dei"),
                   {:ok, _} <- Efossils.Command.password_user(ctx,
                     login_username, conn.assigns[:current_user].email),
