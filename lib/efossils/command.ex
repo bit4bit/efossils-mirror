@@ -292,7 +292,7 @@ defmodule Efossils.Command do
     Application.get_env(:efossils, :fossil_user_admin)
   end
   
-  defp get_command do
+  def get_command do
     Application.get_env(:efossils, :fossil_bin)
   end
 end

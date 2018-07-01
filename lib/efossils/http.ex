@@ -2,10 +2,9 @@ defmodule Efossils.Http do
   @moduledoc """
   Abre tunnel a comando *fossil http*
   """
+  alias Efossils.Command
   
-  @command Application.get_env(:efossils, :fossil_bin)
-  
-  @spec ephimeral(Efossils.Command.context(), String.t) :: String.t
+  @spec ephimeral(Command.context(), String.t) :: String.t
   def ephimeral(ctx, baseurl) do
     {:ok, socket} = :gen_tcp.listen(0,
       [:binary, packet: :raw, active: :false, reuseaddr: true])
@@ -21,7 +20,7 @@ defmodule Efossils.Http do
     env = [{"HOME", Keyword.get(ctx, :work_path)},
            {"FOSSIL_USER", username},
            {"REMOTE_USER", username}]
-    proc = %Porcelain.Process{:err => nil} = Porcelain.spawn(@command, ["http", "--nossl", "--baseurl", baseurl, db_path], [in: :receive, out: {:send, pid}, env: env])
+    proc = %Porcelain.Process{:err => nil} = Porcelain.spawn(Command.get_command, ["http", "--nossl", "--baseurl", baseurl, db_path], [in: :receive, out: {:send, pid}, env: env])
     {:ok, client} = :gen_tcp.accept(socket)
     :ok = :gen_tcp.controlling_process(client, self())
     serve(socket, client, proc)
