@@ -40,6 +40,20 @@
           <div class="header">
             <%= repository.lower_name %>
           </div>
+          <div class="description">
+            <div class="ui two column grid">
+              <div class="column">
+                <span>
+                  <i class="octicon octicon-person"></i>
+                  <%= repository_num_collaborators(repository) %> Collaborators
+                </span>
+              </div>
+              <div class="column">
+                <i class="octicon octicon-megaphone"></i> <%=  repository.license %>
+              </div>
+            </div>
+          </div>
+          <div class="ui divider"></div>
           <div class="text">
             <%= repository.description %>
           </div>

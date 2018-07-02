@@ -30,31 +30,43 @@
           <%= if repository.owner_id == @current_user.id do %>
             <a href="<%= repository_path(@conn, :edit, repository) %>"><i class="right floated octicon octicon-tools"></i></a>
           <% end %>
-          <div class="header"><%= repository.lower_name %></div>
+          <div class="header">
+
+            <%= repository.lower_name %>
+          </div>
 
           <div class="description">
-            <span>
-              <i class="octicon octicon-person"></i>
+            <div class="ui two column grid">
+              <div class="column">
+                <span>
+                  <i class="octicon octicon-person"></i>
               <%= repository_num_collaborators(repository) %> Collaborators
-            </span>
+                </span>
+              </div>
+              <div class="column">
+                <i class="octicon octicon-megaphone"></i> <%=  repository.license %>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="content">
-          <h4 class="ui sub header">Timeline</h4>
-          <div class="ui small feed">
-            <div class="event">
-              <div class="content">
-                <div class="summary">
+      </div>
+      <div class="content">
+        <h4 class="ui sub header">Timeline</h4>
+        <div class="ui small feed">
+          <div class="event">
+            <div class="content">
+              <div class="summary">
                   <%= render "timeline.html", timeline: repository_last_day_timeline(repository) %>
-                </div>
               </div>
             </div>
           </div>
         </div>
-        <div class="extra content">
-          <a target="__blank" href="<%= EfossilsWeb.Utils.fossil_path("index", repository.owner, repository) %>" class="ui button">
+      </div>
+      <div class="extra content">
+        <div class="column">
+          <a target="__blank" href="<%= EfossilsWeb.Utils.fossil_path("index", repository.owner, repository) %>" class="ui left button">
             Open
-          </a>
+            </a>
+          </div>
         </div>
       </div>
     </div>
