@@ -4,7 +4,6 @@ defmodule EfossilsWeb.RepositoryController do
   alias Efossils.Repo
 
   def new(conn, _params) do
-    licenses = Accounts.Repository.licenses
     users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
     changeset = Accounts.change_repository(
       %Accounts.Repository{owner_id: conn.assigns[:current_user].id}
@@ -13,9 +12,10 @@ defmodule EfossilsWeb.RepositoryController do
     render(conn, "new.html",
       changeset: changeset,
       users: users,
-      licenses: licenses)
+      licenses: build_list_licenses())
   end
 
+  
   def create(conn, %{"repository" => repository_params}) do
     
     repository_params = repository_params
@@ -48,13 +48,12 @@ defmodule EfossilsWeb.RepositoryController do
         |> put_flash(:info, "Repository created successfully.")
         |> redirect(to: "/dashboard")
       {:error, %Ecto.Changeset{} = changeset} ->
-        licenses = Accounts.Repository.licenses
         users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
 
         render(conn, "new.html",
           changeset: changeset,
           users: users,
-          licenses: licenses)
+          licenses: build_list_licenses())
     end
   end
 
@@ -138,4 +137,12 @@ defmodule EfossilsWeb.RepositoryController do
     collaborations = Accounts.list_collaborations(repository)
     render(conn, "edit.html", repository: repository, changeset: changeset, collaborations: collaborations)
   end
+
+
+  defp build_list_licenses() do
+    Enum.map(Accounts.Repository.licenses, fn {code, license} ->
+      {license.name, code}
+    end)
+  end
+  
 end
