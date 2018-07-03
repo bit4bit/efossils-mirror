@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule EfossilsWeb.Coherence.EmailView do
-  use EfossilsWeb.Coherence, :view
+defmodule Efossils.License do
+  defstruct name: "AGPL 3",
+    uri: "https://gnu.org/licenses/agpl.html",
+    comment: false
 end

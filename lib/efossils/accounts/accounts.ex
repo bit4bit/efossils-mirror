@@ -1,3 +1,21 @@
+# Efossils -- a multirepository for fossil-scm
+# Copyright (C) 2018  Jovany Leandro G.C <bit4bit@riseup.net>
+#
+# This file is part of Efossils.
+#
+# Efossils is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Efossils is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 defmodule Efossils.Accounts do
   @moduledoc """
   The Accounts context.
@@ -34,7 +52,9 @@ defmodule Efossils.Accounts do
     Repo.all(from r in Repository,
       left_join: colab in Efossils.Accounts.Collaboration,
       on: colab.repository_id == r.id,
-      where: r.owner_id == ^owner.id or colab.user_id == ^owner.id)
+      where: r.owner_id == ^owner.id or colab.user_id == ^owner.id,
+      order_by: [desc: :inserted_at]
+    )
     |> Repo.preload([:base_repository, :owner])
   end
   
@@ -356,5 +376,11 @@ defmodule Efossils.Accounts do
   end
   def get_user_by_name(name) do
     Repo.get_by(User, name: name)
+  end
+
+  def is_user_collaborator_for_repository(user, repository) do
+    Repo.aggregate(from( c in Collaboration,
+          where: c.repository_id == ^repository.id and c.user_id == ^user.id),
+      :count, :id)
   end
 end

@@ -1,3 +1,21 @@
+# Efossils -- a multirepository for fossil-scm
+# Copyright (C) 2018  Jovany Leandro G.C <bit4bit@riseup.net>
+#
+# This file is part of Efossils.
+#
+# Efossils is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Efossils is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 defmodule EfossilsWeb.Proxy.Plug do
   import Plug.Conn
   
@@ -15,72 +33,126 @@ defmodule EfossilsWeb.Proxy.Router do
   plug :match
   plug :dispatch
 
+  match "/user/:user/repository/:repository/download*rest" do
+    conn
+    |> send_resp(403, "Forbidden")
+    |> halt
+  end
+
+  match "/user/:user/repository/:repository/tarball*rest" do
+    conn
+    |> send_resp(403, "Forbidden")
+    |> halt
+  end
+
+  match "/user/:user/repository/:repository/zip*rest" do
+    conn
+    |> send_resp(403, "Forbidden")
+    |> halt
+  end
+
+  match "/user/:user/repository/:repository/sqlar*rest" do
+    conn
+    |> send_resp(403, "Forbidden")
+    |> halt
+  end
+
   match "/user/:user/repository/:repository/xfer/*rest" do
-    {conn, Coherence.Authentication.Utils.get_first_req_header(conn,  "authorization")}
-    |> proxify_get_credentials
-    |> proxify_basic_auth(rest)
+    conn
+    |> put_repository()
+    |> put_user_from_basic_auth()
+    |> authorization()
+    |> proxify(rest)
   end
 
   match "/user/:user/repository/:repository/*rest" do
     opts = Coherence.Authentication.Session.init([])
     conn
     |> Coherence.Authentication.Session.call(opts)
+    |> put_repository()
     |> proxify(rest)
   end
 
-  defp proxify_get_credentials({conn, <<"Basic ", creds64::binary >>}) do
+  defp put_repository(conn) do
+    %{"repository" => repository_name} = conn.path_params
+    repository =  Efossils.Accounts.get_repository_by_name!(repository_name)
+    assign(conn, :current_repository, repository)
+  end
+
+  defp put_user_from_basic_auth(conn) do
+    case get_credentials_basic_auth(Coherence.Authentication.Utils.get_first_req_header(conn,  "authorization")) do
+      {email, password} ->
+        case Efossils.Repo.get_by(Efossils.Coherence.User, email: email) do
+          nil -> conn
+          user ->
+            if Efossils.Coherence.User.checkpw(password, user.password_hash) do
+              assign(conn, :authenticated_user, user)
+            else
+              conn
+            end
+            |> assign(:current_user, user)
+        end
+      _ ->
+        conn
+    end
+  end
+
+  defp get_credentials_basic_auth(<<"Basic ", creds64::binary >>)  do
     {:ok, creds} = Base.decode64(creds64)
     case String.split(creds, ":", parts: 2) do
       [email, password]  ->
-        {conn, {email, password}}
+        {email, password}
       _ ->
-        {conn, nil}
+        nil
     end
   end
-  defp proxify_get_credentials({conn, nil}), do: {conn, nil}
+  defp get_credentials_basic_auth(_), do: nil
 
-  defp proxify_basic_auth({conn, nil}, rest) do
-    conn
-    |> put_resp_header("WWW-Authenticate", ~s{Basic realm="efossils"})
-    |> send_resp(401, "Unauthorized")
-    |> halt
-  end
-  
-  defp proxify_basic_auth({conn, {email, password}}, rest) do
-    case Efossils.Repo.get_by(Efossils.Coherence.User, email: email) do
-      nil ->
-        conn
-        |> send_resp(403, "Forbidden")
-        |> halt
-      user ->
-        if Efossils.Coherence.User.checkpw(password, user.password_hash) do
+
+  defp authorization(conn) do
+    user = conn.assigns[:current_user]
+    authenticated_user = conn.assigns[:authenticated_user]
+    repository = conn.assigns[:current_repository]
+    if repository.is_private == false do
+      conn
+    else
+      cond do
+        user == nil ->
           conn
-          |> assign(:current_user, user)
-          |> proxify(rest)
-        else
+          |> put_resp_header("WWW-Authenticate", ~s{Basic realm="efossils"})
+          |> send_resp(401, "Unauthorized")
+          |> halt
+        authenticated_user == nil ->
           conn
           |> send_resp(403, "Forbidden")
           |> halt
-        end
+        true ->
+          conn
+      end
     end
   end
-  
+
+  defp proxify(%Plug.Conn{state: :sent} = conn, _) do
+    conn
+  end
   defp proxify(conn, rest) do
-    %{"repository" => repository_name} = conn.path_params
-    repository = Efossils.Accounts.get_repository_by_name!(repository_name)
-
+    repository = conn.assigns[:current_repository]
+    current_user = conn.assigns[:current_user]
     {:ok, rctx} = Efossils.Accounts.context_repository(repository)
-    credentials = case conn.assigns[:current_user] do
-                    nil -> nil
-                    current_user ->
-                      {current_user.lower_name, current_user.email}
-                  end
-
+    credentials = cond do
+      current_user == nil -> nil
+      current_user.id == repository.owner_id ->
+        {current_user.lower_name, current_user.email}
+      Efossils.Accounts.is_user_collaborator_for_repository(current_user, repository) ->
+        {current_user.lower_name, current_user.email}
+      true ->
+        nil
+    end
+    
     # TODO: http://localhost:4000/fossil tomar de peticion
     # FIXME: esto puede es una posible amenaza de seguridad ya que este string se pasa
     #como argumento al commando *fossil*.
     fossil_base_url = EfossilsWeb.Utils.fossil_path("", repository.owner, repository) |> String.trim("/")
-    baseurl = "http://#{conn.host}:#{conn.port}/#{fossil_base_url}"
 
     url = "/" <> Enum.join(rest,"/") <> "?" <> conn.query_string
     req_headers = Enum.into(conn.req_headers, %{})
@@ -97,7 +169,7 @@ defmodule EfossilsWeb.Proxy.Router do
                Efossils.Command.set_username(rctx, username)
            end
 
-    case Efossils.Command.request_http(rctx, credentials, baseurl,
+    case Efossils.Command.request_http(rctx, credentials, fossil_base_url,
           conn.method, url, body, req_headers["content-type"]) do
       {:ok, response} ->
         headers = Enum.into(response.headers, %{})
@@ -112,7 +184,6 @@ defmodule EfossilsWeb.Proxy.Router do
         end
         |> send_resp(response.status_code, response.body)
       {:error, error} ->
-        IO.puts inspect error
         conn
         |> put_status(:bad_gateway)
         |> send_resp(503, inspect error)

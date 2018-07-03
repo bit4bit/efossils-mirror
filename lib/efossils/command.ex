@@ -1,3 +1,21 @@
+# Efossils -- a multirepository for fossil-scm
+# Copyright (C) 2018  Jovany Leandro G.C <bit4bit@riseup.net>
+#
+# This file is part of Efossils.
+#
+# Efossils is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# Efossils is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 defmodule Efossils.Command do
   @moduledoc """
   Interfaz para la gestión de repositorio via comando *fossil*.
@@ -16,7 +34,7 @@ defmodule Efossils.Command do
     group_path = Path.join([get_repositories_path, group])
     File.mkdir_p!(group_path)
     work_path = Path.join([get_work_path, group, name])
-    File.mkdir_p!(get_work_path)
+    File.mkdir_p!(work_path)
     db_path = Path.join([group_path, "#{name}.fossil"])
     
     ctx = [db_path: db_path,
@@ -118,7 +136,8 @@ defmodule Efossils.Command do
   Realiza peticion HTTP a fossil server
   """
   @spec request_http(context(), {String.t, String.t}, String.t, String.t, String.t, Stream.t|map(), String.t):: {:ok, HTTPoison.Response.t} | {:error, HTTPoison.Error.t}
-  def request_http(ctx, credentials, baseurl, method, url, body, content_type) do
+  def request_http(ctx, credentials, fossil_baseurl, method, url, body, content_type) do
+    baseurl = Application.get_env(:efossils, :fossil_base_url)
     db_path = Keyword.get(ctx, :db_path)
     opts = case credentials do
              nil -> []
@@ -126,7 +145,7 @@ defmodule Efossils.Command do
                [hackney: [basic_auth: credentials]]
            end
     #fossil_url = get_fossil_url_from_pool(ctx, baseurl)
-    fossil_url = Efossils.Http.ephimeral(ctx, baseurl)
+    fossil_url = Efossils.Http.ephimeral(ctx, "#{baseurl}/#{fossil_baseurl}")
     remote_url = fossil_url <> url
     method = case method do
                "GET" -> :get
@@ -137,19 +156,7 @@ defmodule Efossils.Command do
     # HACK: reemplaza usuario por el logeado
     username = Keyword.get(ctx, :default_username)
 
-    
-    {:ok, dbody} = blob_uncompress(ctx, body)
-    {:ok, cbody} = if Regex.match?(~r/U .+/, dbody) do
-      # * si se reemplaza el contenido wrong hash
-      # * si se reemplaza el usuario, y se con un *fossil*
-      # modificado para omitir el error del hash, igualmente
-      # saca error.
-      rbody = Regex.replace(~r/U [^\n]+/, dbody, "U #{username}")
-      blob_compress(ctx, rbody)
-    else
-      {:ok, body}
-    end
-    HTTPoison.request(method, remote_url, cbody, [{"Content-Type", content_type}], opts)
+    HTTPoison.request(method, remote_url, body, [{"Content-Type", content_type}], opts)
   end
 
   @doc """
@@ -196,22 +203,22 @@ defmodule Efossils.Command do
   end
   
   @spec timeline(context(), Calendar.date()):: %{Calendar.date() => [String.t]}:: {:ok, [{Calendar.date(), String.t}]} | {:error, String.t}
-  def timeline(ctx, checkin) when is_binary(checkin) do
+  def timeline(ctx, checkin, limit \\ 0) when is_binary(checkin) do
     db_path = Keyword.get(ctx, :db_path)
-    case cmd(ctx, ["timeline", "-R", db_path, "-W", "0", "-n", "0", checkin]) do
+    case cmd(ctx, ["timeline", "-R", db_path, "-W", "0", "-n", Integer.to_string(limit), checkin]) do
       {stdout, 0} ->
         {:ok, {checkin, String.split(stdout, "\n", trim: true) |> tl}}
       {stdout, _} ->
         {:error, stdout}
     end
   end
-  def timeline(ctx, date) do
-    timeline(ctx, Date.to_string(date))
+  def timeline(ctx, date, limit) do
+    timeline(ctx, Date.to_string(date), limit)
   end
 
-  def last_day_timeline(ctx) do
+  def last_day_timeline(ctx, limit \\ 0) do
     db_path = Keyword.get(ctx, :db_path)
-    case cmd(ctx, ["timeline", "-R", db_path, "-W", "0"]) do
+    case cmd(ctx, ["timeline", "-R", db_path, "-W", "0", "-n", Integer.to_string(limit)]) do
       {stdout, 0} ->
         series = Enum.map_reduce(String.split(stdout, "\n", trim: true), nil,
           fn line, last_date ->
@@ -303,7 +310,7 @@ defmodule Efossils.Command do
     Application.get_env(:efossils, :fossil_user_admin)
   end
   
-  defp get_command do
+  def get_command do
     Application.get_env(:efossils, :fossil_bin)
   end
 end
