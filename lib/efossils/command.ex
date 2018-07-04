@@ -142,7 +142,7 @@ defmodule Efossils.Command do
     opts = case credentials do
              nil -> []
              credentials ->
-               [hackney: [basic_auth: credentials]]
+               [basic_auth: credentials]
            end
     #fossil_url = get_fossil_url_from_pool(ctx, baseurl)
     fossil_url = Efossils.Http.ephimeral(ctx, "#{baseurl}/#{fossil_baseurl}")
@@ -156,7 +156,7 @@ defmodule Efossils.Command do
     # HACK: reemplaza usuario por el logeado
     username = Keyword.get(ctx, :default_username)
 
-    HTTPoison.request(method, remote_url, body, [{"Content-Type", content_type}], opts)
+    HTTPotion.request(method, remote_url, body, [{"Content-Type", content_type}], opts)
   end
 
   @doc """

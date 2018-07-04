@@ -158,9 +158,9 @@ defmodule EfossilsWeb.Proxy.Router do
     req_headers = Enum.into(conn.req_headers, %{})
     body = case req_headers["content-type"] do
              "application/x-fossil" ->
-               Enum.into(stream_body(conn), "")
+               Enum.into(stream_body(conn), <<>>)
              _ ->
-               {:multipart, Map.to_list(conn.body_params)}
+               URI.encode_query(conn.body_params)
            end
 
     rctx = case credentials do
@@ -171,22 +171,21 @@ defmodule EfossilsWeb.Proxy.Router do
 
     case Efossils.Command.request_http(rctx, credentials, fossil_base_url,
           conn.method, url, body, req_headers["content-type"]) do
-      {:ok, response} ->
-        headers = Enum.into(response.headers, %{})
-        case response.status_code do
+      %HTTPotion.Response{:body => body, :headers => headers, :status_code => status_code} ->
+        case status_code do
           302 ->
             conn
-            |> put_resp_content_type(headers["Content-Type"])
-            |> put_resp_header("Location", headers["Location"])
+            |> put_resp_content_type(headers.hdrs["content-type"])
+            |> put_resp_header("Location", headers.hdrs["location"])
           _ ->
             conn
-            |> put_resp_content_type(headers["Content-Type"])
+            |> put_resp_content_type(headers.hdrs["content-type"])
         end
-        |> send_resp(response.status_code, response.body)
-      {:error, error} ->
+        |> send_resp(status_code, body)
+      %HTTPotion.ErrorResponse{message: message} ->
         conn
         |> put_status(:bad_gateway)
-        |> send_resp(503, inspect error)
+        |> send_resp(503, message)
     end
   end
 
