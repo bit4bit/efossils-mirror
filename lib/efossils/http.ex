@@ -20,53 +20,114 @@ defmodule Efossils.Http do
   @moduledoc """
   Abre tunnel a comando *fossil http*
   """
+  use GenServer
   alias Efossils.Command
+
+  @timeout_server_seconds 360
+  @server_tick_time 60000
+  
+  def start_link() do
+    GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
+  end
+
+  def init(_) do
+    {:ok, {%{}, %{}}}
+  end
+
+  def terminate(_reason, {by_pid, _} = state) do
+    Enum.each(by_pid, fn {pid, server} ->
+      Porcelain.Process.signal(server[:proc], :kill)
+    end)
+    :shutdown
+  end
   
   @spec ephimeral(Command.context(), String.t) :: String.t
   def ephimeral(ctx, baseurl) do
-    {:ok, socket} = :gen_tcp.listen(0,
-      [:binary, packet: :raw, active: :false, reuseaddr: true])
-    {:ok, port} = :inet.port(socket)
-    spawn(fn -> loop(socket, ctx, baseurl) end)
-    "http://127.0.0.1:#{port}"
+    GenServer.call(__MODULE__, {:ephimeral, ctx, baseurl})
   end
 
-  defp loop(socket, ctx, baseurl) do
-    pid = self()
+  def handle_call({:ephimeral, ctx, baseurl}, from, {by_pid, by_uid} = state) do
+    uid = uid_server(ctx)
+    case by_uid[uid] do
+      nil ->
+        proc = spawn_server(ctx, baseurl)
+        data = %{url: nil, proc: proc, from: from, uid: uid}
+        by_pid = Map.put(by_pid, proc.pid, data)
+        by_uid = Map.put(by_uid, uid, %{:url => nil,
+                                        :time => System.system_time(:seconds)
+                                       })
+        {:noreply, {by_pid, by_uid}}
+      item ->
+        by_uid = Map.put(by_uid, uid, %{by_uid[uid] | time: System.system_time(:seconds)})
+
+        {:reply, item[:url], {by_pid, by_uid}}
+    end
+  end
+  
+  defp spawn_server(ctx, baseurl) do
     db_path = Keyword.get(ctx, :db_path)
     username =  Keyword.get(ctx, :default_username)
     env = [{"HOME", Keyword.get(ctx, :work_path)},
            {"FOSSIL_USER", username},
            {"REMOTE_USER", username}]
-    proc = %Porcelain.Process{:err => nil} = Porcelain.spawn(Command.get_command, ["http", "--nossl", "--baseurl", baseurl, db_path], [in: :receive, out: {:send, pid}, env: env])
-    {:ok, client} = :gen_tcp.accept(socket)
-    :ok = :gen_tcp.controlling_process(client, self())
-    serve(socket, client, proc)
+    %Porcelain.Process{:err => nil} = Porcelain.spawn(Command.get_command, ["server", "--nossl",
+                                                                            "--localhost",
+                                                                            "--baseurl", baseurl, db_path],
+      [in: :receive, out: {:send, self()}, env: env])
   end
 
-  defp serve(socket, client, proc) do
-    :inet.setopts(client, active: :once)
-    %Porcelain.Process{pid: pid} = proc
+  defp uid_server(ctx) do
+    db_path = Keyword.get(ctx, :db_path)
+    username = Keyword.get(ctx, :default_username)
+    "#{db_path}_#{username}"
+  end
+  
+  def handle_info({pid, :data, :out, <<"Listening for HTTP requests on TCP port ", port::binary>>},
+    {by_pid, by_uid} = state) do
+    server = by_pid[pid]
+    uid = server[:uid]
+    url =  String.trim("http://127.0.0.1:#{port}")
+    GenServer.reply(server[:from], url)
+    by_uid = Map.put(by_uid, uid, %{by_uid[uid] | url: url})
+    
+    Process.send_after(self(), {:server_tick, pid}, @server_tick_time)
+    {:noreply, {by_pid, by_uid}}
+  end
 
-    receive do
-      {:tcp, client, data} ->
-        Porcelain.Process.send_input(proc, data)
-        serve(socket, client, proc)
-      {:tcp_closed, _} ->
-        Porcelain.Process.signal(proc, :kill)
-      {^pid, :data, :out, data} ->
-        :gen_tcp.send(client, data)
-        serve(socket, client, proc)
-      {^pid, :data, :err, err} ->
-        raise inspect err
-      {^pid, :result, _result} ->
-        :gen_tcp.close(socket)
-        Porcelain.Process.signal(proc, :kill)
-      any -> raise inspect any
-    after
-      5_000 ->
-        :gen_tcp.close(socket)
-        Porcelain.Process.signal(proc, :kill)
+  def handle_info({pid, :result, _result}, {by_pid, by_uid} = state) do
+    case by_pid[pid] do
+      nil -> {:noreply, state}
+      server ->
+        by_pid = Map.delete(by_pid, pid)
+        by_uid = Map.delete(by_uid, server[:uid])
+        {:noreply, {by_pid, by_uid}}
+    end
+  end
+
+  def handle_info({pid, :data, :err, _err}, {by_pid, by_uid} = state) do
+    case by_pid[pid] do
+      nil -> {:noreply, state}
+      server ->
+        Porcelain.Process.signal(server[:proc], :kill)
+        by_pid = Map.delete(by_pid, pid)
+        {:noreply, by_pid}
+    end
+  end
+
+  def handle_info({:server_tick, pid}, {by_pid, by_uid} = state) do
+    case by_pid[pid] do
+      nil -> {:noreply, state}
+      server ->
+        uid = server[:uid]
+        now = System.system_time(:seconds)
+        diff = now - by_uid[uid][:time]
+        if  diff > @timeout_server_seconds do
+                 Porcelain.Process.signal(server[:proc], :kill)
+                 {:noreply, {by_pid, by_uid}}
+                 else
+                   Process.send_after(self(), {:server_tick, pid}, @server_tick_time)
+                   {:noreply, {by_pid, by_uid}}
+        end
     end
   end
 end
