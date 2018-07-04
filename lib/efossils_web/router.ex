@@ -54,10 +54,10 @@ defmodule EfossilsWeb.Router do
     coherence_routes :protected
   end
 
-  #scope "/fossil", EfossilsWeb do
-  #pipe_through :put_session
-  #forward "/", Proxy.Plug
-  #  end
+  scope "/fossil", EfossilsWeb do
+    pipe_through :put_session
+    forward "/", Proxy.Plug
+  end
   
   scope "/", EfossilsWeb do
     pipe_through :browser # Use the default browser stack

@@ -53,7 +53,6 @@ defmodule Efossils.Http do
         :ok = :gen_tcp.controlling_process(client, self())
         serve(socket, client, proc)
       {:error, err} ->
-        IO.puts inspect err
         Porcelain.Process.signal(proc, :kill)
     end
   end
@@ -69,11 +68,9 @@ defmodule Efossils.Http do
       {:tcp_closed, _} ->
         Porcelain.Process.signal(proc, :kill)
       {^pid, :data, :out, data} ->
-        IO.puts data
         :gen_tcp.send(client, data)
         serve(socket, client, proc)
       {^pid, :data, :err, err} ->
-        IO.puts inspect err
         raise inspect err
       {^pid, :result, _result} ->
         :gen_tcp.close(socket)

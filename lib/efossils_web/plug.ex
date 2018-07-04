@@ -17,6 +17,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule EfossilsWeb.Proxy.Plug do
+  @moduledoc """
+  Proxy a comando *fossil*, aunque esto se debe retirar
+  por la implementacion `EfossilsWeb.FossilHandler`
+  """
   import Plug.Conn
   
   def init(opts), do: opts

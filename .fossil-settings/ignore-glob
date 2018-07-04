@@ -4,6 +4,8 @@
 **#
 *.fossil
 *.dump
+*.beam
+cowboy/ebin/
 _build/
 */node_modules
 deps/
