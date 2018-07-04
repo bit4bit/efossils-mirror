@@ -168,19 +168,15 @@ defmodule EfossilsWeb.Proxy.Router do
              {username, _} ->
                Efossils.Command.set_username(rctx, username)
            end
-
+    IO.puts inspect req_headers
     case Efossils.Command.request_http(rctx, credentials, fossil_base_url,
-          conn.method, url, body, req_headers["content-type"]) do
+          conn.method, url, body, req_headers) do
       %HTTPotion.Response{:body => body, :headers => headers, :status_code => status_code} ->
-        case status_code do
-          302 ->
-            conn
-            |> put_resp_content_type(headers.hdrs["content-type"])
-            |> put_resp_header("Location", headers.hdrs["location"])
-          _ ->
-            conn
-            |> put_resp_content_type(headers.hdrs["content-type"])
-        end
+        IO.puts "response"
+        IO.puts inspect headers.hdrs
+        Enum.reduce(headers.hdrs, conn, fn {key, val}, conn ->
+          put_resp_header(conn, key, val)
+        end)
         |> send_resp(status_code, body)
       %HTTPotion.ErrorResponse{message: message} ->
         conn

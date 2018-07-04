@@ -136,7 +136,7 @@ defmodule Efossils.Command do
   Realiza peticion HTTP a fossil server
   """
   @spec request_http(context(), {String.t, String.t}, String.t, String.t, String.t, Stream.t|map(), String.t):: {:ok, HTTPoison.Response.t} | {:error, HTTPoison.Error.t}
-  def request_http(ctx, credentials, fossil_baseurl, method, url, body, content_type) do
+  def request_http(ctx, credentials, fossil_baseurl, method, url, body, req_headers) do
     baseurl = Application.get_env(:efossils, :fossil_base_url)
     db_path = Keyword.get(ctx, :db_path)
     opts = case credentials do
@@ -155,8 +155,13 @@ defmodule Efossils.Command do
              end
     # HACK: reemplaza usuario por el logeado
     username = Keyword.get(ctx, :default_username)
-
-    HTTPotion.request(method, remote_url, body, [{"Content-Type", content_type}], opts)
+    opts = Keyword.put(opts, :headers, ["Content-Type": req_headers["content-type"],
+                                        "User-Agent": req_headers["user-agent"],
+                                        "Content-Length": req_headers["content-length"],
+                                       ])
+                                       |> Keyword.put(:body, body)
+                                       |> Keyword.put(:timeout, :infinity)
+    HTTPotion.request(method, remote_url, opts)
   end
 
   @doc """
