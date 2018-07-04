@@ -175,7 +175,7 @@ defmodule EfossilsWeb.Proxy.Router do
         IO.puts "response"
         IO.puts inspect headers.hdrs
         Enum.reduce(headers.hdrs, conn, fn {key, val}, conn ->
-          put_resp_header(conn, key, val)
+          put_resp_header(conn, String.downcase(key), val)
         end)
         |> send_resp(status_code, body)
       %HTTPotion.ErrorResponse{message: message} ->

@@ -156,8 +156,7 @@ defmodule Efossils.Command do
     # HACK: reemplaza usuario por el logeado
     username = Keyword.get(ctx, :default_username)
     opts = Keyword.put(opts, :headers, ["Content-Type": req_headers["content-type"],
-                                        "User-Agent": req_headers["user-agent"],
-                                        "Content-Length": req_headers["content-length"],
+                                        "User-Agent": req_headers["user-agent"]
                                        ])
                                        |> Keyword.put(:body, body)
                                        |> Keyword.put(:timeout, :infinity)
