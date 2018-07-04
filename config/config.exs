@@ -21,6 +21,11 @@ config :efossils, EfossilsWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "nU4sFCd9FUhwBRt42DkS4UKewXXpsCI2wwTfiCT7dkCwQk42jRwm1BrzhnOV1GOZ",
   render_errors: [view: EfossilsWeb.ErrorView, accepts: ~w(html json)],
+  http: [dispatch: [
+            {:_, [
+                {"/fossilproxy/user/:user/repository/:repository/[...]", EfossilsWeb.FossilHandler, []},
+                {:_, Plug.Adapters.Cowboy.Handler, {EfossilsWeb.Endpoint, []}}
+              ]}]],
   pubsub: [name: Efossils.PubSub,
            adapter: Phoenix.PubSub.PG2]
 
@@ -55,3 +60,5 @@ config :coherence, EfossilsWeb.Coherence.Mailer,
 config :scrivener_html,
   routes_helper: EfossilsWeb.Router.Helpers,
   view_style: :semantic
+
+config :porcelain, :driver, Porcelain.Driver.Basic
