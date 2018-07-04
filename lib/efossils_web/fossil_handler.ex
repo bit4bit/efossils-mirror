@@ -116,8 +116,12 @@ defmodule EfossilsWeb.FossilHandler do
   end
 
   def info({_pid, :data, :out, data}, req, %{state: :body} = state) do
-    :ok = :cowboy_req.chunk(data, req)
-    {:loop, req, state}
+    case :cowboy_req.chunk(data, req) do
+      :ok ->
+        {:loop, req, state}
+      {:error, :closed} ->
+        {:ok, req, state}
+    end
   end
      
   def info({_pid, :result, _proc}, req, state) do
@@ -173,7 +177,8 @@ defmodule EfossilsWeb.FossilHandler do
     raise "cowboy overflow reached, please verify loop_max_buffer"
     :ok
   end
-  def terminate(_reason, req, state) do
+  def terminate(_reason, req, %{proc: proc} = state) do
+    Porcelain.Process.signal(proc, :kill)
     # `reason` 
     :ok
   end
