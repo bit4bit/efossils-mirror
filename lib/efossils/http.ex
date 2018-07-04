@@ -34,7 +34,7 @@ defmodule Efossils.Http do
     @spec ephimeral_port(Command.context(), String.t) :: integer()
   def ephimeral_port(ctx, baseurl) do
     {:ok, socket} = :gen_tcp.listen(0,
-      [:binary, packet: :raw, active: :once, reuseaddr: true, ip: {127,0,0,1}])
+      [:binary, packet: :raw, active: :false, reuseaddr: true, ip: {127,0,0,1}])
     {:ok, port} = :inet.port(socket)
     spawn(fn -> loop(socket, ctx, baseurl) end)
     port
@@ -69,6 +69,7 @@ defmodule Efossils.Http do
       {:tcp_closed, _} ->
         Porcelain.Process.signal(proc, :kill)
       {^pid, :data, :out, data} ->
+        IO.puts data
         :gen_tcp.send(client, data)
         serve(socket, client, proc)
       {^pid, :data, :err, err} ->

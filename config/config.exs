@@ -23,7 +23,7 @@ config :efossils, EfossilsWeb.Endpoint,
   render_errors: [view: EfossilsWeb.ErrorView, accepts: ~w(html json)],
   http: [dispatch: [
             {:_, [
-                {"/fossilproxy/user/:user/repository/:repository/[...]", EfossilsWeb.FossilHandler, []},
+                {"/fossilproxy/user/:user/repository/:repository/[...]", EfossilsWeb.FossilHandler, [loop_max_buffer: 1000000]},
                 {:_, Plug.Adapters.Cowboy.Handler, {EfossilsWeb.Endpoint, []}}
               ]}]],
   pubsub: [name: Efossils.PubSub,
