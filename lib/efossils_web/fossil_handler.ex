@@ -7,7 +7,6 @@ defmodule EfossilsWeb.FossilHandler do
   
   def init({:tcp, :http}, req, opts) do
     baseurl = Application.get_env(:efossils, :fossil_base_url)
-
     {query_string, req} = :cowboy_req.qs(req)
     {method, req} = :cowboy_req.method(req)
     {username, req} = :cowboy_req.binding(:user, req)
