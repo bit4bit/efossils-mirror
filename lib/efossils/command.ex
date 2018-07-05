@@ -136,16 +136,16 @@ defmodule Efossils.Command do
   Realiza peticion HTTP a fossil server
   """
   @spec request_http(context(), {String.t, String.t}, String.t, String.t, String.t, Stream.t|map(), String.t):: {:ok, HTTPoison.Response.t} | {:error, HTTPoison.Error.t}
-  def request_http(ctx, credentials, fossil_baseurl, method, url, body, content_type) do
+  def request_http(ctx, credentials, fossil_baseurl, method, url, body, req_headers) do
     baseurl = Application.get_env(:efossils, :fossil_base_url)
     db_path = Keyword.get(ctx, :db_path)
     opts = case credentials do
              nil -> []
              credentials ->
-               [hackney: [basic_auth: credentials]]
+               [basic_auth: credentials]
            end
     #fossil_url = get_fossil_url_from_pool(ctx, baseurl)
-    fossil_url = Efossils.Http.ephimeral(ctx, "#{baseurl}/#{fossil_baseurl}")
+    fossil_url = Efossils.Http.ephimeral(ctx, "#{baseurl}/#{fossil_baseurl}", String.contains?(url, "xfer"))
     remote_url = fossil_url <> url
     method = case method do
                "GET" -> :get
@@ -155,8 +155,12 @@ defmodule Efossils.Command do
              end
     # HACK: reemplaza usuario por el logeado
     username = Keyword.get(ctx, :default_username)
-
-    HTTPoison.request(method, remote_url, body, [{"Content-Type", content_type}], opts)
+    opts = Keyword.put(opts, :headers, ["Content-Type": req_headers["content-type"],
+                                        "User-Agent": req_headers["user-agent"]
+                                       ])
+                                       |> Keyword.put(:body, body)
+                                       |> Keyword.put(:timeout, :infinity)
+    HTTPotion.request(method, remote_url, opts)
   end
 
   @doc """

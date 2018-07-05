@@ -157,10 +157,10 @@ defmodule EfossilsWeb.Proxy.Router do
     url = "/" <> Enum.join(rest,"/") <> "?" <> conn.query_string
     req_headers = Enum.into(conn.req_headers, %{})
     body = case req_headers["content-type"] do
-             <<"application/x-fossil", _rest::binary>> ->
-               Enum.into(stream_body(conn), "")
+             "application/x-fossil" ->
+               Enum.into(stream_body(conn), <<>>)
              _ ->
-               {:multipart, Map.to_list(conn.body_params)}
+               URI.encode_query(conn.body_params)
            end
 
     rctx = case credentials do
@@ -170,19 +170,16 @@ defmodule EfossilsWeb.Proxy.Router do
            end
 
     case Efossils.Command.request_http(rctx, credentials, fossil_base_url,
-          conn.method, url, body, req_headers["content-type"]) do
-      {:ok, response} ->
-        Enum.reduce(response.headers, conn, fn
-          {"Content-Type", val} -> put_resp_content_type(conn, val)
-          {"Content-Length", _} -> conn
-          {key, val} ->
-            put_resp_header(conn, key, val)
+          conn.method, url, body, req_headers) do
+      %HTTPotion.Response{:body => body, :headers => headers, :status_code => status_code} ->
+        Enum.reduce(headers.hdrs, conn, fn {key, val}, conn ->
+          put_resp_header(conn, String.downcase(key), val)
         end)
-        |> send_resp(response.status_code, response.body)
-      {:error, error} ->
+        |> send_resp(status_code, body)
+      %HTTPotion.ErrorResponse{message: message} ->
         conn
         |> put_status(:bad_gateway)
-        |> send_resp(503, inspect error)
+        |> send_resp(503, message)
     end
   end
 
@@ -223,7 +220,7 @@ defmodule EfossilsWeb.Proxy.Parser do
      Keyword.pop(opts, :body_reader, {Plug.Conn, :read_body, []})
   end
 
-  def parse(conn, "application", <<"x-fossil", _rest::binary>>, _headers, {{mod, fun, args}, opts}) do
+  def parse(conn, "application", "x-fossil", _headers, {{mod, fun, args}, opts}) do
     {:ok, %{}, conn}
   end
   
