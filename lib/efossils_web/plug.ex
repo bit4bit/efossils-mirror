@@ -168,12 +168,10 @@ defmodule EfossilsWeb.Proxy.Router do
              {username, _} ->
                Efossils.Command.set_username(rctx, username)
            end
-    IO.puts inspect req_headers
+
     case Efossils.Command.request_http(rctx, credentials, fossil_base_url,
           conn.method, url, body, req_headers) do
       %HTTPotion.Response{:body => body, :headers => headers, :status_code => status_code} ->
-        IO.puts "response"
-        IO.puts inspect headers.hdrs
         Enum.reduce(headers.hdrs, conn, fn {key, val}, conn ->
           put_resp_header(conn, String.downcase(key), val)
         end)

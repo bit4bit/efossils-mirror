@@ -41,13 +41,27 @@ defmodule Efossils.Http do
     :shutdown
   end
   
-  @spec ephimeral(Command.context(), String.t) :: String.t
-  def ephimeral(ctx, baseurl) do
-    GenServer.call(__MODULE__, {:ephimeral, ctx, baseurl})
+  @spec ephimeral(Command.context(), String.t, boolean) :: String.t
+  def ephimeral(ctx, baseurl, is_xfer \\ false) do
+    GenServer.call(__MODULE__, {:ephimeral, ctx, baseurl, is_xfer})
   end
 
-  def handle_call({:ephimeral, ctx, baseurl}, from, {by_pid, by_uid} = state) do
-    uid = uid_server(ctx)
+  def handle_call({:ephimeral, ctx, baseurl, is_xfer}, from, {by_pid, by_uid} = state) do
+    #se reusa servidor inicialido ya que los /xfer son para el mismo repositorio
+    uid = case is_xfer do
+            false -> uid_server(ctx)
+            true ->
+              db_path = Keyword.get(ctx, :db_path)
+              uids = Enum.filter(Map.keys(by_uid), fn key ->
+                String.contains?(key, db_path)
+              end)
+
+              case List.first(uids) do
+                nil -> uid_server(ctx)
+                uid -> uid
+              end
+          end
+    
     case by_uid[uid] do
       nil ->
         proc = spawn_server(ctx, baseurl)
