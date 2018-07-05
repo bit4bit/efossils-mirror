@@ -157,7 +157,7 @@ defmodule EfossilsWeb.Proxy.Router do
     url = "/" <> Enum.join(rest,"/") <> "?" <> conn.query_string
     req_headers = Enum.into(conn.req_headers, %{})
     body = case req_headers["content-type"] do
-             "application/x-fossil" ->
+             <<"application/x-fossil", _rest::binary>> ->
                Enum.into(stream_body(conn), "")
              _ ->
                {:multipart, Map.to_list(conn.body_params)}
@@ -203,7 +203,7 @@ defmodule EfossilsWeb.Proxy.Router do
         {:cont, conn} ->
           case Plug.Conn.read_body(conn) do
             {:ok, data, conn} ->
-              {:halt, conn}
+              {[data], {:close, conn}}
             {:more, data, conn} ->
                 {[data], {:cont, conn}}
           end
@@ -227,7 +227,7 @@ defmodule EfossilsWeb.Proxy.Parser do
      Keyword.pop(opts, :body_reader, {Plug.Conn, :read_body, []})
   end
 
-  def parse(conn, "application", "x-fossil", _headers, {{mod, fun, args}, opts}) do
+  def parse(conn, "application", <<"x-fossil", _rest::binary>>, _headers, {{mod, fun, args}, opts}) do
     {:ok, %{}, conn}
   end
   
