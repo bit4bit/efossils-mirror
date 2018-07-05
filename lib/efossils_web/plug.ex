@@ -198,7 +198,7 @@ defmodule EfossilsWeb.Proxy.Router do
         {:cont, conn} ->
           case Plug.Conn.read_body(conn) do
             {:ok, data, conn} ->
-              {:halt, conn}
+              {[data], {:close, conn}}
             {:more, data, conn} ->
                 {[data], {:cont, conn}}
           end
