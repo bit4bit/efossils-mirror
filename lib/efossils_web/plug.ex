@@ -57,28 +57,40 @@ defmodule EfossilsWeb.Proxy.Router do
     |> halt
   end
 
-  match "/user/:user/repository/:repository/xfer/*rest" do
+  match "/user/:user/repository/:repository/*rest" do
     conn
-    |> put_repository()
-    |> put_user_from_basic_auth()
+    |> select_authentication(rest)
     |> authorization()
     |> proxify(rest)
   end
 
-  match "/user/:user/repository/:repository/*rest" do
-    opts = Coherence.Authentication.Session.init([])
-    conn
-    |> Coherence.Authentication.Session.call(opts)
-    |> put_repository()
-    |> proxify(rest)
-  end
+  defp select_authentication(conn, rest) do
 
+    if String.contains?(Path.join(rest), "xfer") do
+      conn
+      |> put_repository()
+      |> put_user_from_basic_auth()
+    else
+      conn = conn
+      |> put_user_from_session
+      |> put_repository()
+      
+      conn
+      |> assign(:authenticated_user, conn.assigns[:current_user])
+    end
+  end
+  
   defp put_repository(conn) do
     %{"repository" => repository_name} = conn.path_params
     repository =  Efossils.Accounts.get_repository_by_name!(repository_name)
     assign(conn, :current_repository, repository)
   end
 
+  defp put_user_from_session(conn) do
+    opts = Coherence.Authentication.Session.init([])
+    conn |> Coherence.Authentication.Session.call(opts)
+  end
+  
   defp put_user_from_basic_auth(conn) do
     case get_credentials_basic_auth(Coherence.Authentication.Utils.get_first_req_header(conn,  "authorization")) do
       {email, password} ->
@@ -96,7 +108,7 @@ defmodule EfossilsWeb.Proxy.Router do
         conn
     end
   end
-
+  
   defp get_credentials_basic_auth(<<"Basic ", creds64::binary >>)  do
     {:ok, creds} = Base.decode64(creds64)
     case String.split(creds, ":", parts: 2) do
@@ -113,6 +125,7 @@ defmodule EfossilsWeb.Proxy.Router do
     user = conn.assigns[:current_user]
     authenticated_user = conn.assigns[:authenticated_user]
     repository = conn.assigns[:current_repository]
+
     if repository.is_private == false do
       conn
     else
