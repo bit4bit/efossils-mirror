@@ -172,16 +172,12 @@ defmodule EfossilsWeb.Proxy.Router do
     case Efossils.Command.request_http(rctx, credentials, fossil_base_url,
           conn.method, url, body, req_headers["content-type"]) do
       {:ok, response} ->
-        headers = Enum.into(response.headers, %{})
-        case response.status_code do
-          302 ->
-            conn
-            |> put_resp_content_type(headers["Content-Type"])
-            |> put_resp_header("Location", headers["Location"])
-          _ ->
-            conn
-            |> put_resp_content_type(headers["Content-Type"])
-        end
+        Enum.reduce(response.headers, conn, fn
+          {"Content-Type", val} -> put_resp_content_type(conn, val)
+          {"Content-Length", _} -> conn
+          {key, val} ->
+            put_resp_header(conn, key, val)
+        end)
         |> send_resp(response.status_code, response.body)
       {:error, error} ->
         conn
