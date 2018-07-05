@@ -55,7 +55,7 @@ defmodule EfossilsWeb.RepositoryController do
                   {:ok, _} <- Efossils.Command.setting(ctx, "default-perms", "dei"),
                   {:ok, _} <- Efossils.Command.password_user(ctx,
                     login_username, conn.assigns[:current_user].email),
-                  {:ok, _} <- Efossils.Command.capabilities_user(ctx, login_username, "dei"),
+                  {:ok, _} <- Efossils.Command.capabilities_user(ctx, login_username, "cdefgijkmnortuvwx"),
                   {:ok, _} <- Efossils.Command.config_import(ctx, "fossil.skin"),
                   {:ok, _} <- Accounts.update_repository(repository, Enum.into(ctx, %{})),
       do: {:ok, repository}
