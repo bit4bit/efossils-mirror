@@ -21,6 +21,9 @@ defmodule EfossilsWeb.RepositoryController do
   alias Efossils.Accounts
   alias Efossils.Repo
 
+  @default_capabilities "cdefgijkmnortuvwx"
+  @default_capabilities_collaborator "cdefgijkmnortuvwx"
+  
   def new(conn, _params) do
     users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
     changeset = Accounts.change_repository(
@@ -55,7 +58,7 @@ defmodule EfossilsWeb.RepositoryController do
                   {:ok, _} <- Efossils.Command.setting(ctx, "default-perms", "dei"),
                   {:ok, _} <- Efossils.Command.password_user(ctx,
                     login_username, conn.assigns[:current_user].email),
-                  {:ok, _} <- Efossils.Command.capabilities_user(ctx, login_username, "cdefgijkmnortuvwx"),
+                  {:ok, _} <- Efossils.Command.capabilities_user(ctx, login_username, @default_capabilities),
                   {:ok, _} <- Efossils.Command.config_import(ctx, "fossil.skin"),
                   {:ok, _} <- Accounts.update_repository(repository, Enum.into(ctx, %{})),
       do: {:ok, repository}
@@ -126,10 +129,9 @@ defmodule EfossilsWeb.RepositoryController do
       nil ->
         Plug.Conn.assign(conn, :collaboration_error, "User not found")
       collaborator ->
-        capabilities = "dei"
         attrs = %{repository_id: repository.id,
                   user_id: collaborator.id,
-                  capabilities: capabilities,
+                  capabilities: @default_capabilities_collaborator,
                   fossil_username: collaborator.email,
                   fossil_password: collaborator.email,
                  }
@@ -137,7 +139,7 @@ defmodule EfossilsWeb.RepositoryController do
           {:ok, _}  ->
             {:ok, ctx} = Accounts.context_repository(repository)
             {:ok, _} = Efossils.Command.new_user(ctx, collaborator.lower_name, collaborator.id, collaborator.email)
-            {:ok, _} = Efossils.Command.capabilities_user(ctx, collaborator.lower_name, capabilities)
+            {:ok, _} = Efossils.Command.capabilities_user(ctx, collaborator.lower_name, @default_capabilities_collaborator)
             conn
           {:error, _} ->
             Plug.Conn.assign(conn, :collaboration_error, "User exists")
