@@ -381,6 +381,6 @@ defmodule Efossils.Accounts do
   def is_user_collaborator_for_repository(user, repository) do
     Repo.aggregate(from( c in Collaboration,
           where: c.repository_id == ^repository.id and c.user_id == ^user.id),
-      :count, :id)
+      :count, :id) > 0
   end
 end

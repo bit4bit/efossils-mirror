@@ -151,6 +151,7 @@ defmodule EfossilsWeb.Proxy.Router do
   defp proxify(conn, rest) do
     repository = conn.assigns[:current_repository]
     current_user = conn.assigns[:current_user]
+
     {:ok, rctx} = Efossils.Accounts.context_repository(repository)
     credentials = cond do
       current_user == nil -> nil
@@ -158,6 +159,18 @@ defmodule EfossilsWeb.Proxy.Router do
         {current_user.lower_name, current_user.email}
       Efossils.Accounts.is_user_collaborator_for_repository(current_user, repository) ->
         {current_user.lower_name, current_user.email}
+      current_user.id != repository.owner_id ->
+        #si usuario esta logeado en plataforma y no es colaborador
+        #se le dan los permisos de usuario anonimo
+        caps_anonymous = "hmnc"
+        case Efossils.Command.capabilities_user(rctx, current_user.lower_name, caps_anonymous) do
+          {:error, :user_not_exists} ->
+            {:ok, rctx} = Efossils.Command.new_user(rctx, current_user.lower_name, current_user.id, current_user.email)
+            {:ok, rctx} = Efossils.Command.capabilities_user(rctx, current_user.lower_name, caps_anonymous)
+            {current_user.lower_name, current_user.email}
+          {:ok, rctx} ->
+            {current_user.lower_name, current_user.email}
+        end
       true ->
         nil
     end
