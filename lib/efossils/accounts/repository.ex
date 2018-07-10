@@ -173,6 +173,8 @@ defmodule Efossils.Accounts.Repository do
     {:"mpl2.0", %License{name: "MPL 2.0",
                          uri: "http://directory.fsf.org/wiki/License:MPLv2.0",
                          comment: "https://www.gnu.org/licenses/license-list#MPL-2.0"}},
+    {:"custom", %License{name: "CUSTOM",
+                         uri: "", comment: "See COPYING or LICENSE for details"}},
     
   ]
   def licenses, do: @licenses
