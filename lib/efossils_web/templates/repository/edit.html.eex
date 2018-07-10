@@ -51,10 +51,12 @@
   </div>
   <% end %>
 Please type username.
-  <div class="field">
-    <%= label f, :username %>
-    <%= text_input f, :username, placeholder: "Username" %>
-  </div>
+
+    <div class="ui search">
+      <%= text_input f, :username, placeholder: "Username", class: "prompt" %>
+      <div class="results"></div>
+    </div>
+
   <%= submit gettext("Add"), class: "ui green submit button" %>
   </div>
   <div class="column">
@@ -87,5 +89,6 @@ Please type repository name for permanent delete for <b><%= @repository.name %>.
   <%= text_input f, :confirm_name, placeholder: "Repository Name..." %>
 </div>
 <%= submit gettext("Delete"), class: "ui red submit button" %>
+
 <% end %>
 

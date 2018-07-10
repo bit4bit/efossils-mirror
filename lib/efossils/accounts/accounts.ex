@@ -392,4 +392,10 @@ defmodule Efossils.Accounts do
           where: c.repository_id == ^repository.id and c.user_id == ^user.id),
       :count, :id) > 0
   end
+
+  def search_user(query) do
+    like_query = "%#{query}%"
+    Repo.all(from u in User,
+      where: fragment("? ilike ?", u.name, ^like_query))
+  end
 end

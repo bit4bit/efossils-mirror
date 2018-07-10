@@ -74,10 +74,10 @@ exports.config = {
     npm: {
         enabled: true,
         globals: {
+            $: "jquery",
             Tether: 'tether',
             Popper: 'popper.js',
-            jQuery: 'jquery',
-            "semantic-ui": 'semantic-ui-sass'
+            jQuery: 'jquery'
         }
     }
 };

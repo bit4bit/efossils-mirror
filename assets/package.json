@@ -12,8 +12,6 @@
     "phoenix": "file:../deps/phoenix",
     "phoenix_html": "file:../deps/phoenix_html",
     "popper.js": "^1.14.3",
-    "sass-brunch": "^2.10.4",
-    "semantic-ui": "^2.3.2",
     "semantic-ui-sass": "^2.2.11",
     "tether": "^1.4.4"
   },
@@ -21,6 +19,7 @@
     "babel-brunch": "6.1.1",
     "brunch": "2.10.9",
     "clean-css-brunch": "2.10.0",
+    "sass-brunch": "^2.10.4",
     "uglify-js-brunch": "2.10.0"
   }
 }

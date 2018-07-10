@@ -6,7 +6,7 @@
 // explicitly imported. The only exception are files
 // in vendor, which are never wrapped in imports and
 // therefore are always executed.
-
+//=require semantic-ui
 // Import dependencies
 //
 // If you no longer want to use a dependency, remember
@@ -19,4 +19,5 @@ import "phoenix_html"
 // paths "./socket" or full ones "web/static/js/socket".
 
 // import socket from "./socket"
+import "semantic-ui-sass"
 import "./semantic-ui"

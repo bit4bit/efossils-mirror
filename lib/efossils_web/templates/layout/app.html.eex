@@ -25,7 +25,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Multirepository fossils">
     <meta name="author" content="Jovany Leandro G.C <bit4bit@riseup.net>">
-
+    <%= if @conn.assigns[:user_token], do: tag :meta, name: "user_token", content: @conn.assigns.user_token %>
     <title>Efossils!</title>
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
   </head>

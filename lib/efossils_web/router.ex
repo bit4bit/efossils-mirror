@@ -79,6 +79,11 @@ defmodule EfossilsWeb.Router do
 
   end
 
+  scope "/api/v1", EfossilsWeb do
+    pipe_through :protected
+    get "/search/user", Api.V1.SearchController, :user
+  end
+  
   defp put_layout_from_session(conn, _) do
     if conn.assigns[:current_user] do
       Phoenix.Controller.put_layout(conn, {EfossilsWeb.LayoutView, :app})
