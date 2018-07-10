@@ -128,6 +128,7 @@ defmodule EfossilsWeb.RepositoryController do
     case Accounts.get_user_by_name(username) do
       nil ->
         Plug.Conn.assign(conn, :collaboration_error, "User not found")
+        |> render("edit.html", repository: repository, changeset: changeset, collaborations: collaborations)
       collaborator ->
         attrs = %{repository_id: repository.id,
                   user_id: collaborator.id,
@@ -140,12 +141,15 @@ defmodule EfossilsWeb.RepositoryController do
             {:ok, ctx} = Accounts.context_repository(repository)
             {:ok, _} = Efossils.Command.new_user(ctx, collaborator.lower_name, collaborator.id, collaborator.email)
             {:ok, _} = Efossils.Command.capabilities_user(ctx, collaborator.lower_name, @default_capabilities_collaborator)
+            collaborations = Accounts.list_collaborations(repository)
             conn
+            |> render("edit.html", repository: repository, changeset: changeset, collaborations: collaborations)
           {:error, _} ->
             Plug.Conn.assign(conn, :collaboration_error, "User exists")
+            |> render("edit.html", repository: repository, changeset: changeset, collaborations: collaborations)
         end
     end
-    |> render("edit.html", repository: repository, changeset: changeset, collaborations: collaborations)
+    
   end
 
   def collaboration_delete(conn, %{"repository_id" => id, "user_id" => collaborator_id}) do
