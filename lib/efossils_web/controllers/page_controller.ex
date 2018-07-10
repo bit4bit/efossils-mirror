@@ -24,8 +24,10 @@ defmodule EfossilsWeb.PageController do
     render conn, "index.html"
   end
 
-  def dashboard(conn, _params) do
-    repositories = Accounts.list_repositories_by_owner(conn.assigns[:current_user])
+  def dashboard(conn, params) do
+    repositories = Accounts.query_repositories_by_owner(conn.assigns[:current_user])
+    |> Efossils.Repo.paginate(params)
+
     render conn, "dashboard.html", repositories: repositories
   end
 end

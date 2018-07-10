@@ -48,6 +48,15 @@ defmodule Efossils.Accounts do
     |> Repo.preload([:base_repository, :owner])
   end
 
+  def query_repositories_by_owner(owner) do
+    from r in Repository,
+      left_join: colab in Efossils.Accounts.Collaboration,
+      on: colab.repository_id == r.id,
+      where: r.owner_id == ^owner.id or colab.user_id == ^owner.id,
+      order_by: [desc: :inserted_at],
+      preload: [:base_repository, :owner]
+  end
+  
   def list_repositories_by_owner(owner) do
     Repo.all(from r in Repository,
       left_join: colab in Efossils.Accounts.Collaboration,

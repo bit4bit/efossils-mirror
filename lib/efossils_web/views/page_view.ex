@@ -18,5 +18,6 @@
 
 defmodule EfossilsWeb.PageView do
   use EfossilsWeb, :view
+  import Scrivener.HTML
   import EfossilsWeb.EfossilsHelper
 end

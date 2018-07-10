@@ -65,10 +65,12 @@
         <div class="column">
           <a target="__blank" href="<%= EfossilsWeb.Utils.fossil_path("index", repository.owner, repository) %>" class="ui left button">
             Open
-            </a>
-          </div>
+          </a>
         </div>
+      </div>
       </div>
     </div>
   <% end %>
 </div>
+
+<%= pagination_links @repositories %>
