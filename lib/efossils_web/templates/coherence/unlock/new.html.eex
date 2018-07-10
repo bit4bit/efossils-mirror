@@ -19,23 +19,23 @@
 -->
 <br \>
 
-<%= form_for @conn, unlock_path(@conn, :create), [as: :unlock], fn f  -> %>
+<%= form_for @conn, unlock_path(@conn, :create), [as: :unlock, class: "ui form segment"], fn f  -> %>
 
-  <div class="form-group">
-    <%= required_label f, dgettext("coherence", "Email"), class: "control-label" %>
-    <%= text_input f, :email, class: "form-control", required: "" %>
+  <div class="field">
+    <%= required_label f, dgettext("coherence", "Email") %>
+    <%= text_input f, :email, required: "" %>
     <%= error_tag f, :email %>
   </div>
 
-  <div class="form-group">
-    <%= required_label f, dgettext("coherence", "Password"), class: "control-label" %>
-    <%= password_input f, :password, class: "form-control", required: "" %>
+  <div class="field">
+    <%= required_label f, dgettext("coherence", "Password") %>
+    <%= password_input f, :password, required: "" %>
     <%= error_tag f, :password %>
   </div>
 
-  <div class="form-group">
-    <%= submit dgettext("coherence", "Send Instructions"), class: "btn btn-primary" %>
-    <%= link dgettext("coherence", "Cancel"), to: Coherence.Config.logged_out_url("/"), class: "btn" %>
+  <div class="field">
+    <%= submit dgettext("coherence", "Send Instructions"), class: "ui primary submit button" %>
+    <%= link dgettext("coherence", "Cancel"), to: Coherence.Config.logged_out_url("/"), class: "ui submit button" %>
   </div>
 
 <% end %>
