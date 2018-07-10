@@ -36,9 +36,11 @@
     <div class="column">
       <div class="ui fluid card">
         <div class="content">
-          <div class="ui teal right ribbon label"><%= Application.get_env(:efossils, :federated_name) %></div>
+          <div class="ui teal right ribbon label"><%= Application.get_env(:efossils, :federated_name) %>
+          </div>
+
           <div class="header">
-            <%= repository.lower_name %>
+<%= repository.lower_name %>
           </div>
           <div class="description">
             <div class="ui two column grid">
@@ -59,6 +61,7 @@
           </div>
         </div>
         <div class="extra content">
+          <a href="<%= EfossilsWeb.Utils.fossil_path("xfer", repository.owner, repository) %>" onclick="return false;" title="Copy this link, then run *fossil clone <url>*"><i class="left floated octicon octicon-clippy"></i></a>
           <a target="__blank" href="<%= EfossilsWeb.Utils.fossil_path("index", repository.owner, repository) %>" class="ui button">
             Open
           </a>
