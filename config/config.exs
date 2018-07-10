@@ -42,6 +42,7 @@ config :coherence,
   router: EfossilsWeb.Router,
   messages_backend: EfossilsWeb.Coherence.Messages,
   logged_out_url: "/",
+  user_token: true,
   email_from_name: "Your Name",
   email_from_email: "yourname@example.com",
   #TODO: se deshabilita `trackable`, error con plug 1.6
