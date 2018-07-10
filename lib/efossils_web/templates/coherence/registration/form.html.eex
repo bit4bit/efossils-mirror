@@ -17,56 +17,56 @@
      # You should have received a copy of the GNU Affero General Public License
      # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -->
-<%= form_for @changeset, @action, [as: :registration], fn f  -> %>
+<%= form_for @changeset, @action, [as: :registration, class: "ui form segment"], fn f  -> %>
 
   <%= if @changeset.action do %>
-    <div class="alert alert-danger">
+    <div class="ui red message">
       <p><%= dgettext "coherence", "Oops, something went wrong! Please check the errors below." %></p>
     </div>
   <% end %>
 
-  <div class="form-group">
-    <%= required_label f, dgettext("coherence", "Name"), class: "control-label" %>
-    <%= text_input f, :name, class: "form-control", required: "" %>
+  <div class="field">
+    <%= required_label f, dgettext("coherence", "Name") %>
+    <%= text_input f, :name, required: "" %>
     <%= error_tag f, :name %>
   </div>
 
   <%= unless (login_field = Coherence.Config.login_field) == :email do %>
-    <div class="form-group">
-      <%= required_label f, login_field, class: "control-label" %>
-      <%= text_input f, login_field, class: "form-control", required: "" %>
+    <div class="field">
+      <%= required_label f, login_field %>
+      <%= text_input f, login_field, required: "" %>
       <%= error_tag f, login_field %>
     </div>
   <% end %>
 
-  <div class="form-group">
-    <%= required_label f, dgettext("coherence", "Email"), class: "control-label" %>
-    <%= text_input f, :email, class: "form-control", required: "" %>
+  <div class="field">
+    <%= required_label f, dgettext("coherence", "Email") %>
+    <%= text_input f, :email, required: "" %>
     <%= error_tag f, :email %>
   </div>
 
   <%= if Coherence.Config.require_current_password and not is_nil(@changeset.data.id) do %>
-    <div class="form-group">
-      <%= required_label f, :current_password, class: "control-label" %>
-      <%= password_input f, :current_password, [class: "form-control"] ++ @required %>
+    <div class="field">
+      <%= required_label f, :current_password %>
+      <%= password_input f, :current_password, @required %>
       <%= error_tag f, :current_password %>
     </div>
   <% end %>
 
-  <div class="form-group">
-    <%= required_label f, dgettext("coherence", "Password"), class: "control-label" %>
-    <%= password_input f, :password, [class: "form-control"] ++ @required %>
+  <div class="field">
+    <%= required_label f, dgettext("coherence", "Password") %>
+    <%= password_input f, :password, @required %>
     <%= error_tag f, :password %>
   </div>
 
-  <div class="form-group">
-    <%= required_label f, dgettext("coherence", "Password Confirmation"), class: "control-label" %>
-    <%= password_input f, :password_confirmation, [class: "form-control"] ++ @required %>
+  <div class="field">
+    <%= required_label f, dgettext("coherence", "Password Confirmation") %>
+    <%= password_input f, :password_confirmation, @required %>
     <%= error_tag f, :password_confirmation %>
   </div>
 
-  <div class="form-group">
-    <%= submit @label, class: "btn btn-primary" %>
-    <%= link dgettext("coherence", "Cancel"), to: Coherence.Config.logged_out_url("/"), class: "btn" %>
+  <div class="field">
+    <%= submit @label, class: "ui primary submit button" %>
+    <%= link dgettext("coherence", "Cancel"), to: Coherence.Config.logged_out_url("/"), class: "ui submit button" %>
   </div>
 <% end %>
