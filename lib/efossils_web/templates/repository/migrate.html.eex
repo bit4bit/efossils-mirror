@@ -17,13 +17,46 @@
      # You should have received a copy of the GNU Affero General Public License
      # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -->
-<%= form_for @changeset, repository_path(@conn, :create), [class: "ui form segment"], fn f -> %>
-<h4 class="ui right floated header"><%= gettext("Repository") %></h4>
+<%= form_for @changeset, migration_path(@conn, :migrate_create), [class: "ui form segment"], fn f -> %>
+<h4 class="ui right floated header"><%= gettext("Migration") %></h4>
+
 <%= if @changeset.action do %>
-  <div class="ui message">
+  <div class="ui red message">
     <p>Oops, something went wrong! Please check the errors below.</p>
   </div>
 <% end %>
+
+<div class="field">
+  <%= label f, :source %>
+  <%= select f, :source, @sources %>
+</div>
+
+<div class="field">
+  <%= label f, :source_url %>
+  <%= text_input f, :source_url %>
+  <%= if message = @changeset.errors[:source_url] do %>
+    <div class="ui red message"><%= message |> elem(0) %></div>
+  <% end %>
+</div>
+
+<div class="ui accordion">
+  <div class="title">
+    <i class="dropdown icon"></i>
+    Autentication
+  </div>
+  <div class="content">
+    <div class="field">
+  <%= label f, :source_username %>
+  <%= text_input f, :source_username %>
+    </div>
+    <div class="field">
+  <%= label f, :source_password %>
+  <%= password_input f, :source_password %>
+    </div>
+  </div>
+</div>
+
+<div class="ui fitted divider"></div>
 
 <div class="field">
   <%= label f, :owner %>
@@ -37,7 +70,7 @@
   <%= label f, :name %>
   <%= text_input f, :name %>
   <%= if message = f.errors[:name] do %>
-  <div class="ui message"><%= message |> elem(0) %></div>
+    <div class="ui message"><%= message |> elem(0) %></div>
   <% end %>
 </div>
 
@@ -58,5 +91,5 @@
   <%= select f, :license, @licenses %>
 </div>
 
-<%= submit gettext("Create Repository"), class: "ui primary submit button" %>
+<%= submit gettext("Migrate"), class: "ui primary submit button" %>
 <% end %>

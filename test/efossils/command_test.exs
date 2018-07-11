@@ -26,5 +26,15 @@ defmodule Efossils.CommandTest do
       {:ok, {date, timelines}} = Efossils.Command.timeline(ctx, date)
       assert length(timelines) > 0
     end
+
+    test "git migration without password returns {:ok, path}" do
+      {:ok, migrate_path} = Efossils.Command.migrate_repository(:git, "https://github.com/elixir-plug/plug/")
+    end
+
+    test "git migration and init without password returns {:ok, }" do
+      {:ok, migrate_path} = Efossils.Command.migrate_repository(:git, "https://github.com/elixir-plug/plug/")
+      {:ok, ctx} = Efossils.Command.init_from_db(migrate_path, "test", "migration")
+      assert File.exists?(Keyword.get(ctx, :db_path)) == true
+    end
   end
 end

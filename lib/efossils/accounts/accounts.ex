@@ -33,6 +33,11 @@ defmodule Efossils.Accounts do
     Efossils.Command.init_repository(Integer.to_string(repo.id),
       Integer.to_string(repo.owner_id), opts)
   end
+
+  def context_repository_from_migrate(migrate_path, repo, opts \\ []) do
+    Efossils.Command.init_from_db(migrate_path, Integer.to_string(repo.id),
+      Integer.to_string(repo.owner_id), opts)
+  end
   
   @doc """
   Returns the list of repositories.

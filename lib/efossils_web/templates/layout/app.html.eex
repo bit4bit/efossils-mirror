@@ -45,6 +45,7 @@
           <i class="dropdown icon"></i>
           <div class="menu">
             <%= link(gettext("Create Repository"), to: repository_path(@conn, :new), class: "item") %>
+            <%= link(gettext("Migrate Repository"), to: migration_path(@conn, :migrate_new), class: "item") %>
           </div>
         </div>
         <div class="right item">

@@ -59,6 +59,26 @@ defmodule Efossils.Command do
     end
   end
 
+  @doc """
+  Inicializa repositorio en base a existente
+  """
+  @spec init_from_db(String.t, String.t, String.t):: {:ok, context()} | {:error, String.t}
+  def init_from_db(migrate_path, name, group, opts \\ []) do
+    group_path = Path.join([get_repositories_path, group])
+    File.mkdir_p!(group_path)
+    work_path = Path.join([get_work_path, group, name])
+    File.mkdir_p!(work_path)
+    db_path = Path.join([group_path, "#{name}.fossil"])
+    :ok = File.cp(migrate_path, db_path)
+    ctx = [db_path: db_path,
+           work_path: work_path,
+           group_path: group_path,
+           default_username: Keyword.get(opts, :default_username, get_username_admin)]
+    {:ok, _} = force_setting(ctx, "http_authentication_ok", "1")
+    {:ok, _} = force_setting(ctx, "remote_user_ok", "1")
+    {:ok, ctx}
+  end
+  
   @spec set_username(context(), String.t) :: context()
   def set_username(ctx, username) do
     Keyword.put(ctx, :default_username, username)
@@ -248,6 +268,65 @@ defmodule Efossils.Command do
     end
   end
 
+  @doc """
+  Migra repositorio a formato fossil
+  
+  TODO: `source_url` propenso a permitir ejecutar comandos en consola
+  """
+  @spec migrate_repository(atom(), String.t, []):: {:ok, context()} | {:error, any()}
+  def migrate_repository("git", source_url, opts \\ []) do
+    migrate_repository(:git, source_url, opts)
+  end
+  
+  def migrate_repository(:git, source_url, opts) do
+    username = Keyword.get(opts, :username, "")
+    password = Keyword.get(opts, :password, "")
+
+    base_repo = URI.encode_www_form(Path.basename(source_url))
+    source_url = if username != "" and password != "" do
+      userinfo = URI.encode_www_form(username) <> ":" <> URI.encode_www_form(password)
+      %{URI.parse(source_url) | userinfo: userinfo}
+      |> URI.to_string
+    else
+      source_url
+    end
+
+    env = [{"GIT_TERMINAL_PROMPT", "0"}]
+    source_path = Path.join(System.tmp_dir!, base_repo)
+    File.rm_rf(source_path)
+    dest_tmp_path = Path.join(System.tmp_dir!, base_repo <> ".fossil")
+    args = ["clone", source_url, source_path]
+    case System.cmd("git", args, [stderr_to_stdout: true, env: env]) do
+      {_, 0} ->
+        cmd_import = ~c(git -C #{String.to_charlist(source_path)} fast-export --all |) ++
+          ~c(fossil import --quiet --force --git #{String.to_charlist(dest_tmp_path)})
+        
+        out = to_string(:os.cmd(cmd_import))
+        
+        File.rm_rf(source_path)
+        cond do
+          String.contains?(out, "fatal") ->
+            {:error, out}
+          String.contains?(out, "admin-user") ->
+            {:ok, dest_tmp_path}
+          true ->
+            {:error, out}
+        end
+      {stdout, _} ->
+        cond do
+          String.contains?(stdout, "fatal: could not read") ->
+            {:error, :required_authentication}
+          String.contains?(stdout, "fatal: Authentication") ->
+            {:error, :authentication}
+          true ->
+            {:error, stdout}
+        end
+    end
+  end
+  def migrate_repository(_source, source_url, opts) do
+    {:error, :unknown_source}
+  end
+  
   defp blob_uncompress(ctx, nil) do
     blob_uncompress(ctx, "")
   end

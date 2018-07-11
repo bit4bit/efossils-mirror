@@ -1,4 +1,5 @@
 jQuery('.ui.dropdown').dropdown()
+jQuery('.ui.accordion').accordion()
 jQuery('.ui.search')
     .search({
         searchOnFocus: true,

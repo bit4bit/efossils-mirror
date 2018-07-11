@@ -162,6 +162,104 @@ defmodule EfossilsWeb.RepositoryController do
     render(conn, "edit.html", repository: repository, changeset: changeset, collaborations: collaborations)
   end
 
+  def migrate_new(conn, _params) do
+    sources = [{"GIT", "git"}]
+    users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
+    changeset = Accounts.change_repository(
+      %Accounts.Repository{owner_id: conn.assigns[:current_user].id}
+    )
+    render(conn, "migrate.html", users: users,
+      changeset: changeset,
+      sources: sources,
+      licenses: build_list_licenses())
+  end
+
+  def migrate_create(conn, %{"repository" => repository_params}) do
+    sources = [{"GIT", "git"}]
+    
+    repository_params = repository_params
+    |> Map.put("owner_id", conn.assigns[:current_user].id)
+    |> Accounts.Repository.prepare_attrs
+    login_username = conn.assigns[:current_user].lower_name
+
+    source = repository_params["source"]
+    source_url = repository_params["source_url"]
+    source_username = Map.get(repository_params, "source_username", nil)
+    source_password = Map.get(repository_params, "source_password", nil)
+    changeset =  %Accounts.Repository{}
+    |> Accounts.Repository.changeset(repository_params)
+    
+    result = with {:ok, migrate_path} <- Efossils.Command.migrate_repository(repository_params["source"],
+                       repository_params["source_url"], [username: source_username,
+                                                         password: source_password]),
+                  {:ok, repository} <- Efossils.Repo.insert(changeset),
+                  {:ok, ctx} <- Accounts.context_repository_from_migrate(migrate_path, repository,
+                    default_username: login_username),
+                  {:ok, _} <- Efossils.Command.force_setting(ctx, "project-name", repository.name),
+                  {:ok, _} <- Efossils.Command.force_setting(ctx, "project-description", repository.description),
+                  {:ok, _} <- Efossils.Command.force_setting(ctx, "short-project-name", repository.lower_name),
+                  {:ok, _} <- Efossils.Command.force_setting(ctx, "search-doc", "1"),
+                  {:ok, _} <- Efossils.Command.force_setting(ctx, "search-tkt", "1"),
+                  {:ok, _} <- Efossils.Command.force_setting(ctx, "search-wiki", "1"),
+                  {:ok, _} <- Efossils.Command.force_setting(ctx, "search-technote", "1"),
+                  {:ok, _} <- Efossils.Command.force_setting(ctx, "search-ci", "0"),
+                  {:ok, _} <- Efossils.Command.setting(ctx, "default-perms", "dei"),
+                  {:ok, _} <- Efossils.Command.new_user(ctx,
+                    login_username, conn.assigns[:current_user].id, conn.assigns[:current_user].email),
+                  {:ok, _} <- Efossils.Command.capabilities_user(ctx, login_username, @default_capabilities),
+                  {:ok, _} <- Efossils.Command.config_import(ctx, "fossil.skin"),
+                  {:ok, _} <- Accounts.update_repository(repository, Enum.into(ctx, %{})),
+      do: {:ok, repository}
+    
+    case result do
+      {:ok, repository} ->
+        conn
+        |> put_flash(:info, "Repository created successfully.")
+        |> redirect(to: "/dashboard")
+      {:error, :authentication} ->
+        users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
+        
+        changeset = changeset
+        |> Ecto.Changeset.add_error(:source_url, "failed authentication")
+
+        render(conn, "migrate.html",
+          changeset: changeset,
+          users: users,
+          sources: sources,
+          licenses: build_list_licenses())
+      {:error, :required_authentication} ->
+        users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
+        
+        changeset = changeset
+        |> Ecto.Changeset.add_error(:source_url, "required authentication")
+
+        render(conn, "migrate.html",
+          changeset: changeset,
+          users: users,
+          sources: sources,
+          licenses: build_list_licenses())
+      {:error, %Ecto.Changeset{} = changeset} ->
+        users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
+
+        render(conn, "migrate.html",
+          changeset: changeset,
+          users: users,
+          sources: sources,
+          licenses: build_list_licenses())
+      # TODO : mientras se afina
+      {:error, error} ->
+        users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
+        
+        changeset = changeset
+        |> Ecto.Changeset.add_error(:source_url, inspect error)
+
+        render(conn, "migrate.html",
+          changeset: changeset,
+          users: users,
+          sources: sources,
+          licenses: build_list_licenses())
+    end
+  end
 
   defp build_list_licenses() do
     Enum.map(Accounts.Repository.licenses, fn {code, license} ->

@@ -76,7 +76,9 @@ defmodule EfossilsWeb.Router do
       post "/collaboration/add", RepositoryController, :collaboration_create, as: :collaboration
       delete "/collaboration/:user_id/delete", RepositoryController, :collaboration_delete, as: :collaboration
     end
-
+    
+    get "/migrate/repository", RepositoryController, :migrate_new, as: :migration
+    post "/migrate/repository", RepositoryController, :migrate_create, as: :migration
   end
 
   scope "/api/v1", EfossilsWeb do
