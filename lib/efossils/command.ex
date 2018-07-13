@@ -256,12 +256,14 @@ defmodule Efossils.Command do
         |> elem(0)
 
         {last_date, nil} = List.first(series)
-        timelines = Enum.filter(series |> tl, fn {date, line} -> date == last_date end)
+        timelines = Enum.filter(series |> tl, fn
+	{_date, "+++ end of timeline" <> _rest} -> false
+	{_date, "--- entry limit" <> _rest} -> false
+	{_date, "+++ no more data" <> _rest} -> false
+	{date, line} -> date == last_date end)
         |> Enum.reduce([], fn {date, line}, acc ->
           acc ++ [line]
         end)
-        # se elimina ultima linea
-        |> Enum.reverse |> tl |> Enum.reverse
         {:ok, {last_date, timelines}}
       {stdout, _} ->
         {:error, stdout}
