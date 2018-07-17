@@ -23,6 +23,7 @@ defmodule EfossilsWeb.RepositoryController do
 
   @default_capabilities "cdefgijkmnortuvwx"
   @default_capabilities_collaborator "cdefgijkmnortuvwx"
+  @sources_migration [{"GIT", "git"}, {"Fossil", "fossil"}]
   
   def new(conn, _params) do
     users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
@@ -163,20 +164,17 @@ defmodule EfossilsWeb.RepositoryController do
   end
 
   def migrate_new(conn, _params) do
-    sources = [{"GIT", "git"}]
     users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
     changeset = Accounts.change_repository(
       %Accounts.Repository{owner_id: conn.assigns[:current_user].id}
     )
     render(conn, "migrate.html", users: users,
       changeset: changeset,
-      sources: sources,
+      sources: @sources_migration,
       licenses: build_list_licenses())
   end
 
   def migrate_create(conn, %{"repository" => repository_params}) do
-    sources = [{"GIT", "git"}]
-    
     repository_params = repository_params
     |> Map.put("owner_id", conn.assigns[:current_user].id)
     |> Accounts.Repository.prepare_attrs
@@ -225,7 +223,7 @@ defmodule EfossilsWeb.RepositoryController do
         render(conn, "migrate.html",
           changeset: changeset,
           users: users,
-          sources: sources,
+          sources: @sources_migration,
           licenses: build_list_licenses())
       {:error, :required_authentication} ->
         users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
@@ -236,7 +234,7 @@ defmodule EfossilsWeb.RepositoryController do
         render(conn, "migrate.html",
           changeset: changeset,
           users: users,
-          sources: sources,
+          sources: @sources_migration,
           licenses: build_list_licenses())
       {:error, %Ecto.Changeset{} = changeset} ->
         users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
@@ -244,7 +242,7 @@ defmodule EfossilsWeb.RepositoryController do
         render(conn, "migrate.html",
           changeset: changeset,
           users: users,
-          sources: sources,
+          sources: @sources_migration,
           licenses: build_list_licenses())
       # TODO : mientras se afina
       {:error, error} ->
@@ -256,7 +254,7 @@ defmodule EfossilsWeb.RepositoryController do
         render(conn, "migrate.html",
           changeset: changeset,
           users: users,
-          sources: sources,
+          sources: @sources_migration,
           licenses: build_list_licenses())
     end
   end

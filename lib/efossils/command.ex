@@ -276,8 +276,41 @@ defmodule Efossils.Command do
   TODO: `source_url` propenso a permitir ejecutar comandos en consola
   """
   @spec migrate_repository(atom(), String.t, []):: {:ok, context()} | {:error, any()}
-  def migrate_repository("git", source_url, opts \\ []) do
+  def migrate_repository("git", source_url, opts) do
     migrate_repository(:git, source_url, opts)
+  end
+
+  def migrate_repository("fossil", source_url, opts) do
+    migrate_repository(:fossil, source_url, opts)
+  end
+
+  def migrate_repository(:fossil, source_url, opts) do
+    username = Keyword.get(opts, :username, "")
+    password = Keyword.get(opts, :password, "")
+    base_repo = URI.encode_www_form(Path.basename(source_url))
+    dest_tmp_path = Path.join(System.tmp_dir!, base_repo <> ".fossil")
+    
+    args = ["1m", "fossil", "clone", "--once"]
+    |> Kernel.++(if username != "" and password != "" do
+      ["-B", "#{username}:#{password}"]
+    else
+      []
+    end)
+    |> Kernel.++([source_url, dest_tmp_path])
+    
+    case System.cmd("timeout", args, [stderr_to_stdout: true, env: []]) do
+      {_, 0} ->
+        {:ok, dest_tmp_path}
+      {stdout, _} ->
+        cond do
+          String.contains?(stdout, "server says: 404") ->
+            {:error, :not_found}
+          String.contains?(stdout, "Basic Authorization user") ->
+            {:error, :required_authentication}
+          true ->
+            {:error, stdout}
+        end
+    end
   end
   
   def migrate_repository(:git, source_url, opts) do
@@ -297,8 +330,8 @@ defmodule Efossils.Command do
     source_path = Path.join(System.tmp_dir!, base_repo)
     File.rm_rf(source_path)
     dest_tmp_path = Path.join(System.tmp_dir!, base_repo <> ".fossil")
-    args = ["clone", source_url, source_path]
-    case System.cmd("git", args, [stderr_to_stdout: true, env: env]) do
+    args = ["3m", "git", "clone", source_url, source_path]
+    case System.cmd("timeout", args, [stderr_to_stdout: true, env: env]) do
       {_, 0} ->
         cmd_import = ~c(git -C #{String.to_charlist(source_path)} fast-export --all |) ++
           ~c(fossil import --quiet --force --git #{String.to_charlist(dest_tmp_path)})
@@ -316,6 +349,8 @@ defmodule Efossils.Command do
         end
       {stdout, _} ->
         cond do
+          String.contains?(stdout, "fata: unable to access") ->
+            {:error, :not_found}
           String.contains?(stdout, "fatal: could not read") ->
             {:error, :required_authentication}
           String.contains?(stdout, "fatal: Authentication") ->
