@@ -39,6 +39,7 @@
             <i class="octicon octicon-home"></i><%= gettext "Dashboard"%>
           </a>
           <a class="item" href="/explore/repositories"><%= gettext "Explore"%></a>
+          <a class="item" href="/profile"><%= "Profile" %></a>
         </div>
         <div class="ui right dropdown item">
           More

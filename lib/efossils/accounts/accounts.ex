@@ -381,6 +381,20 @@ defmodule Efossils.Accounts do
 
   alias Efossils.Coherence.User
 
+  def change_user(%User{} = user) do
+    User.changeset(user, %{})
+  end
+
+  def change_user_profile(%User{} = user) do
+    User.changeset_profile(user, %{})
+  end
+  
+  def update_user_profile(%User{} = user, attrs) do
+    user
+    |> User.changeset_profile(attrs)
+    |> Repo.update()
+  end
+
   def list_users do
     Repo.all(User)
   end

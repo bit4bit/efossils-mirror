@@ -48,6 +48,16 @@ defmodule Efossils.Coherence.User do
     timestamps()
   end
 
+  def changeset_profile(model, params \\ %{}) do
+    model
+    |> cast(params, [:name, :email] ++ coherence_fields() ++ [:lower_name, :keep_email_private, :location, :website, :avatar_email, :avatar, :use_custom_avatar, :password, :password_confirmation])
+    |> Efossils.Utils.build_lower_name()
+    |> validate_required([:lower_name, :name, :email])
+    |> validate_format(:email, ~r/@/)
+    |> unique_constraint(:email)
+    |> validate_coherence(params)
+  end
+  
   def changeset(model, params \\ %{}) do
     model
     |> cast(params, [:name, :email] ++ coherence_fields() ++ [:lower_name, :keep_email_private, :location, :website, :max_repo_creation, :prohibit_login, :avatar_email, :avatar, :use_custom_avatar, :num_repos, :num_stars])

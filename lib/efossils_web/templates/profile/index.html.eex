@@ -1,0 +1,70 @@
+<%= form_for @changeset, profile_path(@conn, :update), [class: "ui form segment"], fn f -> %>
+<h4 class="ui right floated header"><%= gettext "General" %></h4>
+
+<%=  if @changeset.action do %>
+  <div class="ui red message">
+    <p>Oops, something went wrong! Please check the errors below.</p>
+
+  </div>
+<% end %>
+
+<div class="field">
+  <%= label f, :name %>
+  <%= text_input f, :name %>
+  <%= if message = f.errors[:name] do %>
+    <div class="ui red message"><%=  message |> elem(0) %></div>
+  <% end %>
+</div>
+
+<div class="field">
+  <%= label f, :email %>
+  <%= text_input f, :email %>
+  <%= if message = f.errors[:email] do %>
+    <div class="ui red message"><%=  message |> elem(0) %></div>
+  <% end %>
+</div>
+
+<div class="field">
+  <%= label f, :location %>
+  <%= text_input f, :location %>
+  <%= if message = f.errors[:location] do %>
+    <div class="ui red message"><%=  message |> elem(0) %></div>
+  <% end %>
+</div>
+
+
+<div class="field">
+  <%= label f, :website %>
+  <%= text_input f, :website %>
+  <%= if message = f.errors[:website] do %>
+    <div class="ui red message"><%=  message |> elem(0) %></div>
+  <% end %>
+</div>
+
+<div class="ui divider"></div>
+<div class="field">
+  <%= label f, :current_password %>
+  <%= password_input f, :current_password %>
+  <%= if message = f.errors[:current_password] do %>
+    <div class="ui red message"><%=  message |> elem(0) %></div>
+  <% end %>
+</div>
+
+<div class="field">
+  <%= label f, :password %>
+  <%= password_input f, :password %>
+  <%= if message = f.errors[:password] do %>
+    <div class="ui red message"><%=  message |> elem(0) %></div>
+  <% end %>
+</div>
+
+<div class="field">
+  <%= label f, :password_confirmation %>
+  <%= password_input f, :password_confirmation %>
+  <%= if message = f.errors[:password_confirmation] do %>
+    <div class="ui red message"><%=  message |> elem(0) %></div>
+  <% end %>
+</div>
+
+<%= submit gettext("Update"), class: "ui primary submit button" %>
+<% end %>

@@ -69,6 +69,8 @@ defmodule EfossilsWeb.Router do
   scope "/", EfossilsWeb do
     pipe_through :protected
 
+    get "/profile", ProfileController, :index
+    put "/profile", ProfileController, :update
     get "/dashboard", PageController, :dashboard
     get "/", PageController, :dashboard
     resources "/repositories", RepositoryController do
