@@ -354,10 +354,12 @@ defmodule Efossils.Command do
     password = Keyword.get(opts, :password, "")
     base_repo = URI.encode_www_form(Path.basename(source_url))
     dest_tmp_path = Path.join(System.tmp_dir!, base_repo <> ".fossil")
-    
+
+    eusername = URI.encode_www_form(username)
+    epassword = URI.encode_www_form(password)
     args = ["1m", "fossil", "clone", "--once"]
     |> Kernel.++(if username != "" and password != "" do
-      ["-B", "#{username}:#{password}"]
+      ["-B", "#{eusername}:#{epassword}"]
     else
       []
     end)
