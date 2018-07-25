@@ -277,43 +277,31 @@ defmodule Efossils.Command do
   """
   @spec migrate_repository(atom(), String.t, []):: {:ok, context()} | {:error, any()}
   def migrate_repository("git", source_url, opts) do
-    migrate_repository(:git, source_url, opts)
+    do_migrate_repository(:git, source_url, opts)
   end
-
   def migrate_repository("fossil", source_url, opts) do
-    migrate_repository(:fossil, source_url, opts)
+    do_migrate_repository(:fossil, source_url, opts)
   end
-
-  def migrate_repository(:fossil, source_url, opts) do
-    username = Keyword.get(opts, :username, "")
-    password = Keyword.get(opts, :password, "")
-    base_repo = URI.encode_www_form(Path.basename(source_url))
-    dest_tmp_path = Path.join(System.tmp_dir!, base_repo <> ".fossil")
-    
-    args = ["1m", "fossil", "clone", "--once"]
-    |> Kernel.++(if username != "" and password != "" do
-      ["-B", "#{username}:#{password}"]
-    else
-      []
-    end)
-    |> Kernel.++([source_url, dest_tmp_path])
-    
-    case System.cmd("timeout", args, [stderr_to_stdout: true, env: []]) do
-      {_, 0} ->
-        {:ok, dest_tmp_path}
-      {stdout, _} ->
-        cond do
-          String.contains?(stdout, "server says: 404") ->
-            {:error, :not_found}
-          String.contains?(stdout, "Basic Authorization user") ->
-            {:error, :required_authentication}
-          true ->
-            {:error, stdout}
-        end
-    end
+  def migrate_repository(:fossil, "http://" <> url, opts) do
+    do_migrate_repository(:fossil, "http://" <> url, opts)
+  end
+  def migrate_repository(:fossil, "https://" <> url, opts) do
+    do_migrate_repository(:fossil, "http://" <> url, opts)
+  end
+  def migrate_repository(:git, "http://" <> url , opts) do
+    do_migrate_repository(:git, "http://" <> url, opts)
+  end
+  def migrate_repository(:git, "https://" <> url , opts) do
+    do_migrate_repository(:git, "https://" <> url, opts)
+  end
+  def migrate_repository(:git, "git://" <> url , opts) do
+    do_migrate_repository(:git, "git://" <> url, opts)
+  end
+  def migrate_repository(_source, source_url, opts) do
+    {:error, :unknown_source}
   end
   
-  def migrate_repository(:git, source_url, opts) do
+  defp do_migrate_repository(:git, source_url, opts) do
     username = Keyword.get(opts, :username, "")
     password = Keyword.get(opts, :password, "")
 
@@ -360,10 +348,37 @@ defmodule Efossils.Command do
         end
     end
   end
-  def migrate_repository(_source, source_url, opts) do
-    {:error, :unknown_source}
-  end
   
+  defp do_migrate_repository(:fossil, source_url, opts) do
+    username = Keyword.get(opts, :username, "")
+    password = Keyword.get(opts, :password, "")
+    base_repo = URI.encode_www_form(Path.basename(source_url))
+    dest_tmp_path = Path.join(System.tmp_dir!, base_repo <> ".fossil")
+    
+    args = ["1m", "fossil", "clone", "--once"]
+    |> Kernel.++(if username != "" and password != "" do
+      ["-B", "#{username}:#{password}"]
+    else
+      []
+    end)
+    |> Kernel.++([source_url, dest_tmp_path])
+    
+    case System.cmd("timeout", args, [stderr_to_stdout: true, env: []]) do
+      {_, 0} ->
+        {:ok, dest_tmp_path}
+      {stdout, _} ->
+        cond do
+          String.contains?(stdout, "server says: 404") ->
+            {:error, :not_found}
+          String.contains?(stdout, "Basic Authorization user") ->
+            {:error, :required_authentication}
+          true ->
+            {:error, stdout}
+        end
+    end
+  end
+
+    
   defp blob_uncompress(ctx, nil) do
     blob_uncompress(ctx, "")
   end
@@ -382,6 +397,8 @@ defmodule Efossils.Command do
         {:error, stdout}
     end
   end
+
+  
   defp blob_uncompress(ctx, _), do: blob_uncompress(ctx, "")
   
   defp blob_compress(ctx, indata) do
