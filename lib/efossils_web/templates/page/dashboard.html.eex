@@ -25,7 +25,7 @@
       <div class="ui fluid card">
         <div class="content">
           <%= if repository.owner_id != @current_user.id do %>
-          <div class="ui blue left ribbon label">Collaboration (<%= repository.owner.name %>)</div>
+            <div class="ui blue left ribbon label">Collaboration (<%= repository.owner.name %>)</div>
           <% end %>
 
           
@@ -34,7 +34,9 @@
           <% end %>
 
           <div class="header">
-
+            <%= if repository.is_private do %>
+              <i class="octicon octicon-key"></i>
+            <% end %>
             <%= repository.lower_name %>
           </div>
 
@@ -43,7 +45,7 @@
               <div class="column">
                 <span>
                   <i class="octicon octicon-person"></i>
-              <%= repository_num_collaborators(repository) %> Collaborators
+                  <%= repository_num_collaborators(repository) %> Collaborators
                 </span>
               </div>
               <div class="column">
