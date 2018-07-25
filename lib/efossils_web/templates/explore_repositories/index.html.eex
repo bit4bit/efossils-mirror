@@ -57,7 +57,9 @@
           </div>
           <div class="ui divider"></div>
           <div class="text">
+            <pre>
             <%= repository.description %>
+            </pre>
           </div>
         </div>
         <div class="extra content">
