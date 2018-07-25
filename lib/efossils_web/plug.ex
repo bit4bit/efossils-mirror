@@ -65,8 +65,7 @@ defmodule EfossilsWeb.Proxy.Router do
   end
 
   defp select_authentication(conn, rest) do
-
-    if String.contains?(Path.join(rest), "xfer") do
+    if String.ends_with?(Path.join(rest), "xfer") do
       conn
       |> put_repository()
       |> put_user_from_basic_auth()

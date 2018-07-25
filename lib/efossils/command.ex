@@ -165,7 +165,7 @@ defmodule Efossils.Command do
                [basic_auth: credentials]
            end
     #fossil_url = get_fossil_url_from_pool(ctx, baseurl)
-    fossil_url = Efossils.Http.ephimeral(ctx, "#{baseurl}/#{fossil_baseurl}", String.contains?(url, "xfer"))
+    fossil_url = Efossils.Http.ephimeral(ctx, "#{baseurl}/#{fossil_baseurl}", String.ends_with?(url, "xfer"))
     remote_url = fossil_url <> url
     method = case method do
                "GET" -> :get
