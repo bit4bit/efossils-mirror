@@ -87,7 +87,6 @@ defmodule Efossils.Http do
     %Porcelain.Process{:err => nil} = Porcelain.spawn(Command.get_command, ["server", "--nossl",
                                                                             "--localhost",
                                                                             "--https",
-                                                                            "--nojail",
                                                                             "--baseurl", baseurl, db_path],
       [in: :receive, out: {:send, self()}, env: env])
   end
