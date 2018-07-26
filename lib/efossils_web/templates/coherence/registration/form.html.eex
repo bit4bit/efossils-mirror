@@ -26,9 +26,9 @@
   <% end %>
 
   <div class="field">
-    <%= required_label f, dgettext("coherence", "Name") %>
-    <%= text_input f, :name, required: "" %>
-    <%= error_tag f, :name %>
+    <%= required_label f, dgettext("coherence", "Username") %>
+    <%= text_input f, :username, required: "" %>
+    <%= error_tag f, :username %>
   </div>
 
   <%= unless (login_field = Coherence.Config.login_field) == :email do %>

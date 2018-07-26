@@ -28,6 +28,8 @@ defmodule Efossils.Coherence.User do
     field :email, :string
     coherence_schema()
 
+    field :username, :string
+    # DEPRECATED: `lower_name` se reemplaza por `username`
     field :lower_name, :string
     field :keep_email_private, :boolean
     field :location, :string
@@ -60,17 +62,35 @@ defmodule Efossils.Coherence.User do
   
   def changeset(model, params \\ %{}) do
     model
-    |> cast(params, [:name, :email] ++ coherence_fields() ++ [:lower_name, :keep_email_private, :location, :website, :max_repo_creation, :prohibit_login, :avatar_email, :avatar, :use_custom_avatar, :num_repos, :num_stars])
+    |> cast(params, [:name, :email] ++ coherence_fields() ++ [:username, :keep_email_private, :location, :website, :max_repo_creation, :prohibit_login, :avatar_email, :avatar, :use_custom_avatar, :num_repos, :num_stars])
     |> Efossils.Utils.build_lower_name()
-    |> validate_required([:lower_name, :name, :email])
+    |> put_name()
+    |> validate_required([:username, :email])
     |> validate_format(:email, ~r/@/)
     |> unique_constraint(:email)
     |> validate_coherence(params)
   end
-
+  
   def changeset(model, params, :password) do
     model
     |> cast(params, ~w(password password_confirmation reset_password_token reset_password_sent_at))
     |> validate_coherence_password_reset(params)
   end
+
+  defp put_name(changeset) do
+    name = case fetch_field(changeset, :name) do
+             {_, name} -> name
+             _ -> nil
+           end
+    username = case fetch_field(changeset, :username) do
+                 {_, username} -> username
+                 _ -> nil
+               end
+    if name == nil and username != nil do
+      put_change(changeset, :name, Efossils.Utils.sanitize_name(username))
+    else
+      changeset
+    end
+  end
+
 end
