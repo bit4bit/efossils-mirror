@@ -68,6 +68,7 @@ defmodule Efossils.Coherence.User do
     |> validate_required([:username, :email])
     |> validate_format(:email, ~r/@/)
     |> unique_constraint(:email)
+    |> unique_constraint(:username)
     |> validate_coherence(params)
   end
   
