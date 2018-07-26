@@ -59,7 +59,8 @@ defmodule Efossils.Accounts do
       on: colab.repository_id == r.id,
       where: r.owner_id == ^owner.id or colab.user_id == ^owner.id,
       order_by: [desc: :inserted_at],
-      preload: [:base_repository, :owner]
+      preload: [:base_repository, :owner],
+      group_by: r.id
   end
   
   def list_repositories_by_owner(owner) do
