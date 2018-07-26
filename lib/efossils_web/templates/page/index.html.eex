@@ -21,4 +21,32 @@
   <div class="ui huge header"><%= gettext "Welcome to %{name}!", name: "Efossils" %></div>
 
   <p class="lead">A productive multirepository for <a href="https://www.fossil-scm.org">fossils-scm</a></p>
+  <div class="ui centered grid">
+    <div class="ui statistics">
+      <div class="statistic">
+        <div class="value">
+        <%= statistic_num_public_repositories() %>
+        </div>
+        <div class="label">
+        Public Fossils
+        </div>
+      </div>
+      <div class="statistic">
+        <div class="value">
+       <%= statistic_num_private_repositories() %>
+        </div>
+        <div class="label">
+        Private Fossils
+        </div>
+      </div>
+      <div class="statistic">
+        <div class="value">
+       <%= statistic_num_members() %>
+        </div>
+        <div class="label">
+        Members
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

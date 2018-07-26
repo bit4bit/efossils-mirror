@@ -20,4 +20,24 @@ defmodule EfossilsWeb.PageView do
   use EfossilsWeb, :view
   import Scrivener.HTML
   import EfossilsWeb.EfossilsHelper
+  import Ecto.Query, warn: false
+  alias Efossils.Accounts.Repository
+  alias Efossils.Coherence.User
+  alias Efossils.Repo
+
+  def statistic_num_public_repositories do
+    (from r in Repository,
+      where: r.is_private == false)
+    |> Repo.aggregate(:count, :id)
+  end
+
+  def statistic_num_private_repositories do
+    (from r in Repository,
+      where: r.is_private == true)
+    |> Repo.aggregate(:count, :id)
+  end
+
+  def statistic_num_members do
+    Repo.aggregate(User, :count, :id)
+  end
 end
