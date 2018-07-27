@@ -27,6 +27,7 @@ defmodule Efossils.Utils do
   end
   
   def sanitize_name(name) do
-    Regex.replace(~r/[^\w\d-]/, name, "_")
+    r1 = Regex.replace(~r/[^\w\d.-]/, name, "_")
+    Regex.replace(~r/\.{2,}/, r1, ".")
   end
 end

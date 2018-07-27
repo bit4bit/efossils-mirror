@@ -216,7 +216,7 @@ defmodule Efossils.Accounts.Repository do
   @doc false
   def prepare_attrs(attrs) do
     attrs
-    |> Map.put("lower_name", String.downcase(attrs["name"]))
+    |> Map.put("lower_name", Efossils.Utils.sanitize_name(attrs["name"]))
   end
 
 end
