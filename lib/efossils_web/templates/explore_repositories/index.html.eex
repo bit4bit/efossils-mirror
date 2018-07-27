@@ -17,7 +17,7 @@
      # You should have received a copy of the GNU Affero General Public License
      # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -->
-<form action="/explore/repositories" method="get">
+<form action="<%=  explore_repositories_path(@conn, :index) %>" method="get">
   <div class="ui action input">
     <input placeholder="Search..." type="text" name="search">
     <button class="ui button"><i class="octicon octicon-search"></i></button>
@@ -27,9 +27,24 @@
     <i class="dropdown icon"> </i>
     <div class="default text">Order By</div>
     <div class="menu">
-      <div class="item" data-value="created-at">Created At</div>
+      <div class="item" data-value="inserted-at">Inserted At</div>
+      <div class="item" data-value="updated-at">Updated At</div>
+      <div class="item" data-value="license">License</div>
     </div>
   </div>
+
+  <div class="ui action input selection dropdown">
+    <input name="license" type="hidden" value="<%= @license %>">
+    <i class="dropdown icon"> </i>
+    <div class="default text">License</div>
+    <div class="menu">
+      <div class="item" data-value="">All</div>
+      <%= for {key,val} <- @licenses do %>
+      <div class="item" data-value="<%= val %>"><%= key %></div>
+      <% end %>
+    </div>
+  </div>
+
 </form>
 <div class="ui three column grid">
   <%=  for repository <- @repositories do %>
@@ -73,4 +88,4 @@
   <% end %>
 </div>
 
-<%= pagination_links @repositories, order_by: @orderBy %>
+<%= pagination_links @repositories, order_by: @orderBy, license: @license %>

@@ -23,14 +23,26 @@ defmodule EfossilsWeb.ExploreRepositoriesController do
   
   def index(conn, params) do
     order_by = case params["order_by"] do
+                 "license" ->
+                   [asc: :license]
+                 "updated-at" ->
+                   [desc: :updated_at]
                  _ ->
                    [desc: :inserted_at]
+               end
+    filter = case params["license"] do
+               empty when is_nil(empty) or empty == "" -> []
+               license -> [license: license]
                end
     repositories = search(Efossils.Accounts.Repository, params["search"])
     |> preload([:base_repository, :owner])
     |> order_by(^order_by)
+    |> where(^filter)
     |> Efossils.Repo.paginate(params)
-    render conn, "index.html", repositories: repositories, orderBy: params["order_by"]
+    render conn, "index.html", repositories: repositories,
+      orderBy: params["order_by"],
+      license: params["license"],
+      licenses: build_list_licenses()
   end
 
   defp search(query, ""), do: search(query, nil)
@@ -39,6 +51,12 @@ defmodule EfossilsWeb.ExploreRepositoriesController do
     from(u in query,                                                
       where: fragment("to_tsvector('english', ? || ?) @@ to_tsquery('english', ?)", u.name, u.description, ^search_term)
     )
+  end
+  
+  defp build_list_licenses() do
+    Enum.map(Accounts.Repository.licenses, fn {code, license} ->
+      {license.name, code}
+    end)
   end
 
 end
