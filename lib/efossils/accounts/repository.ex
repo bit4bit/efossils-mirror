@@ -19,6 +19,7 @@
 defmodule Efossils.Accounts.Repository do
   use Ecto.Schema
   import Ecto.Changeset
+  import Ecto.Query, warn: false
   alias Efossils.License
   
   @licenses [
@@ -219,4 +220,23 @@ defmodule Efossils.Accounts.Repository do
     |> Map.put("lower_name", Efossils.Utils.sanitize_name(attrs["name"]))
   end
 
+  @doc false
+  def validate_max_repositories(changeset) do
+    case fetch_field(changeset, :owner_id) do
+      {_, owner_id} ->
+        user = Efossils.Repo.one(from u in Efossils.Coherence.User,
+        select: [u.max_repo_creation, u.num_repos],
+        where: u.id == ^owner_id)
+        case user do
+          nil -> changeset
+          [max_repo_creation, num_repos] ->
+            if (num_repos + 1) > max_repo_creation do
+              add_error(changeset, :owner_id, "sorry, get limit please contact us")
+            else
+              changeset
+            end
+        end
+    end
+  end
+  
 end

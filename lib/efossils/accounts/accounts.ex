@@ -20,11 +20,12 @@ defmodule Efossils.Accounts do
   @moduledoc """
   The Accounts context.
   """
-
+  alias Ecto.Multi
   import Ecto.Query, warn: false
   alias Efossils.Repo
 
   alias Efossils.Accounts.Repository
+  alias Efossils.Coherence.User
 
   @doc """
   Inicializa gestión del repository por medio de `Efossils.Command`.
@@ -106,12 +107,20 @@ defmodule Efossils.Accounts do
 
       iex> create_repository(%{field: bad_value})
       {:error, %Ecto.Changeset{}}
-
+      
   """
   def create_repository(attrs \\ %{}) do
-    %Repository{}
+    changeset = %Repository{}
     |> Repository.changeset(attrs)
-    |> Repo.insert()
+    |> Repository.validate_max_repositories
+    
+    case Repo.insert(changeset) do
+      {:ok, repository} ->
+        from(u in User, where: u.id == ^repository.owner_id)
+        |> Repo.update_all(inc: [num_repos: 1])
+        {:ok, repository}
+      error -> error
+    end
   end
 
   @doc """
@@ -150,6 +159,8 @@ defmodule Efossils.Accounts do
             where: c.repository_id == ^repository.id))
       Repo.delete_all(from(c in Efossils.Accounts.Star,
             where: c.repository_id == ^repository.id))
+      from(u in User, where: u.id == ^repository.owner_id)
+      |> Repo.update_all(inc: [num_repos: -1])
       Repo.delete!(repository)
     end
   end
@@ -379,8 +390,6 @@ defmodule Efossils.Accounts do
     Star.changeset(star, %{})
   end
 
-
-  alias Efossils.Coherence.User
 
   def change_user(%User{} = user) do
     User.changeset(user, %{})

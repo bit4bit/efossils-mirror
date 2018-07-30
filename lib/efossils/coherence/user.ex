@@ -22,7 +22,6 @@ defmodule Efossils.Coherence.User do
   use Coherence.Schema
 
   
-
   schema "users" do
     field :name, :string
     field :email, :string
@@ -41,8 +40,8 @@ defmodule Efossils.Coherence.User do
     field :use_custom_avatar, :boolean, default: false
     
     #counters
-    field :num_stars, :integer
-    field :num_repos, :integer
+    field :num_stars, :integer, default: 0
+    field :num_repos, :integer, default: 0
 
     has_many :repositories, Efossils.Accounts.Repository, [foreign_key: :owner_id]
     has_many :stars, Efossils.Accounts.Star
