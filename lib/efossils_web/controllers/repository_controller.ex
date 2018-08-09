@@ -61,6 +61,8 @@ defmodule EfossilsWeb.RepositoryController do
                     login_username, conn.assigns[:current_user].email),
                   {:ok, _} <- Efossils.Command.capabilities_user(ctx, login_username, @default_capabilities),
                   {:ok, _} <- Efossils.Command.config_import(ctx, "fossil.skin"),
+                  {:ok, _} <- Efossils.Command.config_import(ctx, "fossil.ticket.skin"),
+                  {:ok, _} <- Efossils.Command.Collaborative.append_assigned_to(ctx, login_username),
                   {:ok, _} <- Accounts.update_repository(repository, Enum.into(ctx, %{})),
       do: {:ok, repository}
     
@@ -142,6 +144,8 @@ defmodule EfossilsWeb.RepositoryController do
             {:ok, ctx} = Accounts.context_repository(repository)
             {:ok, _} = Efossils.Command.new_user(ctx, collaborator.lower_name, collaborator.id, collaborator.email)
             {:ok, _} = Efossils.Command.capabilities_user(ctx, collaborator.lower_name, @default_capabilities_collaborator)
+            {:ok, _} = Efossils.Command.Collaborative.append_assigned_to(ctx, collaborator.lower_name)
+            
             collaborations = Accounts.list_collaborations(repository)
             conn
             |> render("edit.html", repository: repository, changeset: changeset, collaborations: collaborations)
@@ -160,6 +164,10 @@ defmodule EfossilsWeb.RepositoryController do
 
     {:ok, _} = Accounts.delete_collaboration(collaboration)
     collaborations = Accounts.list_collaborations(repository)
+    
+    {:ok, ctx} = Accounts.context_repository(repository)
+    Efossils.Command.Collaborative.remove_assigned_to(ctx, collaboration.user.lower_name)
+    
     render(conn, "edit.html", repository: repository, changeset: changeset, collaborations: collaborations)
   end
 

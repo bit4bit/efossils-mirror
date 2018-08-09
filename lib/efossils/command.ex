@@ -200,6 +200,18 @@ defmodule Efossils.Command do
     end
   end
 
+  @spec sql(context(), String.t):: {:ok, String.t} | {:error, String.t}
+  def sql(ctx, query) do
+    db_path = Keyword.get(ctx, :db_path)
+    case cmd(ctx, ["sql", "-R", db_path, query]) do
+      {stdout, 0} ->
+        {:ok, stdout}
+      {stdout, _} ->
+        {:error, stdout}
+    end
+  end
+
+  
   def setting(ctx, key, val) do
     case cmd(ctx, ["settings",
                    "-R", Keyword.get(ctx, :db_path), key, val]) do
@@ -225,7 +237,24 @@ defmodule Efossils.Command do
         {:error, stdout}
     end
   end
-  
+
+  @spec db_config_get(context(), String.t) :: {:ok, String.t} | {:error, String.t}
+  def db_config_get(ctx, key) do
+    db_path = Keyword.get(ctx, :db_path)
+    query = "SELECT value FROM config WHERE name = '#{key}'"
+    case cmd(ctx, ["sql", "-R", db_path, query]) do
+      {stdout, 0} ->
+        {:ok, stdout}
+      {stdout, _} ->
+        {:error, stdout}
+    end
+  end
+
+  @spec db_config_set(context(), String.t, String.t) :: {:ok, String.t} | {:error, String.t}
+  def db_config_set(ctx, key, val) do
+    force_setting(ctx, key, val)
+  end
+
   @spec timeline(context(), Calendar.date()):: %{Calendar.date() => [String.t]}:: {:ok, [{Calendar.date(), String.t}]} | {:error, String.t}
   def timeline(ctx, checkin, limit \\ 0) when is_binary(checkin) do
     db_path = Keyword.get(ctx, :db_path)

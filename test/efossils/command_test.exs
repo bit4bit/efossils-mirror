@@ -36,5 +36,7 @@ defmodule Efossils.CommandTest do
       {:ok, ctx} = Efossils.Command.init_from_db(migrate_path, "test", "migration")
       assert File.exists?(Keyword.get(ctx, :db_path)) == true
     end
+    
   end
+
 end
