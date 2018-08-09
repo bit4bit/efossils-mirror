@@ -1,8 +1,8 @@
 # The "ticket" configuration exported from
 # repository "/home/bit4bit/policodigo/enetwork/efossil/../efossils.fossil"
-# on 2018-08-09 00:00:10
-config /reportfmt 579
-2440587.5 'All Tickets' owner NULL cols '#ffffff Key:
+# on 2018-08-09 18:09:31
+config /reportfmt 613
+1533838119 'All Tickets' owner '' cols '#ffffff Key:
 #f2dcdc Active
 #e8e8e8 Review
 #cfe8bd Fixed
@@ -20,30 +20,9 @@ config /reportfmt 579
   type,
   status,
   subsystem,
+  assigned_to,
   title
 FROM ticket'
-config /reportfmt 633
-1533770954 'Assigned to me' owner 'bit4bit' cols '#ffffff Key:
-#f2dcdc Active
-#e8e8e8 Review
-#cfe8bd Fixed
-#bde5d6 Tested
-#cacae5 Deferred
-#c8c8c8 Closed' sqlcode 'SELECT
-  CASE WHEN status IN (''Open'',''Verified'') THEN ''#f2dcdc''
-       WHEN status=''Review'' THEN ''#e8e8e8''
-       WHEN status=''Fixed'' THEN ''#cfe8bd''
-       WHEN status=''Tested'' THEN ''#bde5d6''
-       WHEN status=''Deferred'' THEN ''#cacae5''
-       ELSE ''#c8c8c8'' END AS ''bgcolor'',
-  substr(tkt_uuid,1,10) AS ''#'',
-  datetime(tkt_mtime) AS ''mtime'',
-  type,
-  status,
-  subsystem,
-  title
-FROM ticket
-WHERE assigned_to=user()'
 config /config 838
 1533771138 'ticket-table' value 'CREATE TABLE ticket(
   -- Do not change any column that begins with tkt_
