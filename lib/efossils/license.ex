@@ -17,6 +17,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Efossils.License do
+  @moduledoc false
+
   defstruct name: "AGPL 3",
     uri: "https://gnu.org/licenses/agpl.html",
     comment: false

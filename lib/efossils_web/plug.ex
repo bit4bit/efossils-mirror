@@ -17,6 +17,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule EfossilsWeb.Proxy.Plug do
+  @moduledoc false
+
   import Plug.Conn
   
   def init(opts), do: opts
@@ -179,7 +181,7 @@ defmodule EfossilsWeb.Proxy.Router do
     #como argumento al commando *fossil*.
     fossil_base_url = EfossilsWeb.Utils.fossil_path("", repository.owner, repository) |> String.trim("/")
 
-    url = "/" <> Enum.join(rest,"/") <> "?" <> conn.query_string
+    url = "/" <> Enum.join(rest, "/") <> "?" <> conn.query_string
     req_headers = Enum.into(conn.req_headers, %{})
     body = case req_headers["content-type"] do
              "application/x-fossil" ->

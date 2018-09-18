@@ -17,7 +17,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Efossils.Coherence.Schemas do
-
+  @moduledoc false
+  
   use Coherence.Config
 
   import Ecto.Query

@@ -17,6 +17,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule EfossilsWeb.Utils do
+  @moduledoc false
+  
   def fossil_path(rest, user, repo) do
     "/fossil/user/#{user.lower_name}/repository/#{repo.lower_name}/#{rest}"
   end

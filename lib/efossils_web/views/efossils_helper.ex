@@ -1,4 +1,5 @@
 defmodule EfossilsWeb.EfossilsHelper do
+  @moduledoc false
   alias Efossils.Accounts
 
   def repository_num_collaborators(repo) do

@@ -1,4 +1,6 @@
 defmodule Efossils.Command.Collaborative do
+  @moduledoc false
+
   alias Efossils.Command
   
   def init(ctx) do

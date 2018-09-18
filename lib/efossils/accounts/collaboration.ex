@@ -17,6 +17,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Efossils.Accounts.Collaboration do
+  @moduledoc false
+
   use Ecto.Schema
   import Ecto.Changeset
 

@@ -17,6 +17,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Efossils.Accounts.Repository do
+  @moduledoc false
+
   use Ecto.Schema
   import Ecto.Changeset
   import Ecto.Query, warn: false
@@ -24,11 +26,11 @@ defmodule Efossils.Accounts.Repository do
   
   @licenses [
     {:agpl1, %License{name: "AGPL 1",
-                       uri: "https://gnu.org/licenses/agpl.html",
-                       comment: "https://gnu.org/licenses/why-affero-gpl.html"}},
+                      uri: "https://gnu.org/licenses/agpl.html",
+                      comment: "https://gnu.org/licenses/why-affero-gpl.html"}},
     {:agpl3, %License{name: "AGPL 3",
-                    uri: "https://gnu.org/licenses/agpl.html",
-                    comment: "https://gnu.org/licenses/why-affero-gpl.html"}},
+                      uri: "https://gnu.org/licenses/agpl.html",
+                      comment: "https://gnu.org/licenses/why-affero-gpl.html"}},
     {:"agpl3+", %License{name: "AGPL 3+",
                          uri: "https://gnu.org/licenses/agpl.html",
                          comment: "https://gnu.org/licenses/why-affero-gpl.html"}},
@@ -175,8 +177,8 @@ defmodule Efossils.Accounts.Repository do
                          uri: "http://directory.fsf.org/wiki/License:MPLv2.0",
                          comment: "https://www.gnu.org/licenses/license-list#MPL-2.0"}},
     {:"x11", %License{name: "X11",
-                         uri: "https://directory.fsf.org/wiki/License:X11",
-			 comment: "https://www.gnu.org/licenses/license-list.html#X11License"}},
+                      uri: "https://directory.fsf.org/wiki/License:X11",
+			                comment: "https://www.gnu.org/licenses/license-list.html#X11License"}},
     {:"custom", %License{name: "CUSTOM",
                          uri: "", comment: "See COPYING or LICENSE for details"}},
     

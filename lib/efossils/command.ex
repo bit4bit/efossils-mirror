@@ -176,10 +176,9 @@ defmodule Efossils.Command do
     # HACK: reemplaza usuario por el logeado
     username = Keyword.get(ctx, :default_username)
     opts = Keyword.put(opts, :headers, ["Content-Type": req_headers["content-type"],
-                                        "User-Agent": req_headers["user-agent"]
-                                       ])
-                                       |> Keyword.put(:body, body)
-                                       |> Keyword.put(:timeout, :infinity)
+                                        "User-Agent": req_headers["user-agent"]])
+                                        |> Keyword.put(:body, body)
+                                        |> Keyword.put(:timeout, :infinity)
     HTTPotion.request(method, remote_url, opts)
   end
 
@@ -274,28 +273,28 @@ defmodule Efossils.Command do
     case cmd(ctx, ["timeline", "-R", db_path, "-W", "0", "-n", Integer.to_string(limit)]) do
       {stdout, 0} ->
         series = Enum.map_reduce(String.split(stdout, "\n", trim: true), nil,
-          fn line, last_date ->
-            if String.starts_with?(line, "===") do
-              date = String.replace(line, "=", "") |> String.trim()
-              {{date, nil}, date}
-            else
-              {{last_date, String.trim(line)}, last_date}
-            end
+        fn line, last_date ->
+          if String.starts_with?(line, "===") do
+            date = String.replace(line, "=", "") |> String.trim()
+            {{date, nil}, date}
+          else
+            {{last_date, String.trim(line)}, last_date}
+          end
         end)
         |> elem(0)
 
         {last_date, nil} = List.first(series)
         timelines = Enum.filter(series |> tl, fn
-	{_date, "+++ end of timeline" <> _rest} -> false
-	{_date, "--- entry limit" <> _rest} -> false
-	{_date, "+++ no more data" <> _rest} -> false
-	{date, line} -> date == last_date end)
+	        {_date, "+++ end of timeline" <> _rest} -> false
+	        {_date, "--- entry limit" <> _rest} -> false
+	        {_date, "+++ no more data" <> _rest} -> false
+	        {date, line} -> date == last_date end)
         |> Enum.reduce([], fn {date, line}, acc ->
-          acc ++ [line]
-        end)
+        acc ++ [line]
+      end)
         {:ok, {last_date, timelines}}
       {stdout, _} ->
-        {:error, stdout}
+          {:error, stdout}
     end
   end
 

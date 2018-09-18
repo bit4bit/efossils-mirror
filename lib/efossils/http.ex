@@ -24,7 +24,7 @@ defmodule Efossils.Http do
   alias Efossils.Command
 
   @timeout_server_seconds 360
-  @server_tick_time 60000
+  @server_tick_time 60_000
   
   def start_link() do
     GenServer.start_link(__MODULE__, :ok, name: __MODULE__)

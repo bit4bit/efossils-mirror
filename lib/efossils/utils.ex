@@ -17,7 +17,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 defmodule Efossils.Utils do
-
+  @moduledoc false
+  
   def build_lower_name(changeset) do
     if username = Ecto.Changeset.get_change(changeset, :username) do
       Ecto.Changeset.put_change(changeset, :lower_name, sanitize_name(username))
