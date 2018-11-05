@@ -1,8 +1,8 @@
 # The "ticket" configuration exported from
-# repository "/home/bit4bit/policodigo/enetwork/efossil/../efossils.fossil"
-# on 2018-08-09 18:09:31
-config /reportfmt 613
-1533838119 'All Tickets' owner '' cols '#ffffff Key:
+# repository "/home/bit4bit/pruebas/fossil/t1/repo.fsl"
+# on 2018-11-05 22:14:12
+config /reportfmt 579
+2440587.5 'All Tickets' owner NULL cols '#ffffff Key:
 #f2dcdc Active
 #e8e8e8 Review
 #cfe8bd Fixed
@@ -20,11 +20,55 @@ config /reportfmt 613
   type,
   status,
   subsystem,
+  title
+FROM ticket'
+config /reportfmt 655
+1541454107 'Assigned to me' owner '' cols '#ffffff Key:
+#f2dcdc Active
+#e8e8e8 Review
+#cfe8bd Fixed
+#bde5d6 Tested
+#cacae5 Deferred
+#c8c8c8 Closed' sqlcode 'SELECT
+  CASE WHEN status IN (''Open'',''Verified'') THEN ''#f2dcdc''
+       WHEN status=''Review'' THEN ''#e8e8e8''
+       WHEN status=''Fixed'' THEN ''#cfe8bd''
+       WHEN status=''Tested'' THEN ''#bde5d6''
+       WHEN status=''Deferred'' THEN ''#cacae5''
+       ELSE ''#c8c8c8'' END AS ''bgcolor'',
+  substr(tkt_uuid,1,10) AS ''#'',
+  datetime(tkt_mtime) AS ''mtime'',
+  type,
+  status,
+  subsystem,
+  title,
+  comment AS ''_comments''
+FROM ticket
+WHERE assigned_to=user()'
+config /reportfmt 605
+1541456035 'All' owner '' cols '#ffffff Key:
+#f2dcdc Active
+#e8e8e8 Review
+#cfe8bd Fixed
+#bde5d6 Tested
+#cacae5 Deferred
+#c8c8c8 Closed' sqlcode 'SELECT
+  CASE WHEN status IN (''Open'',''Verified'') THEN ''#f2dcdc''
+       WHEN status=''Review'' THEN ''#e8e8e8''
+       WHEN status=''Fixed'' THEN ''#cfe8bd''
+       WHEN status=''Tested'' THEN ''#bde5d6''
+       WHEN status=''Deferred'' THEN ''#cacae5''
+       ELSE ''#c8c8c8'' END AS ''bgcolor'',
+  substr(tkt_uuid,1,10) AS ''#'',
+  datetime(tkt_mtime) AS ''mtime'',
+  type,
+  status,
   assigned_to,
+  subsystem,
   title
 FROM ticket'
 config /config 838
-1533771138 'ticket-table' value 'CREATE TABLE ticket(
+1541454129 'ticket-table' value 'CREATE TABLE ticket(
   -- Do not change any column that begins with tkt_
   tkt_id INTEGER PRIMARY KEY,
   tkt_uuid TEXT UNIQUE,
@@ -58,7 +102,7 @@ CREATE TABLE ticketchng(
 CREATE INDEX ticketchng_idx1 ON ticketchng(tkt_id, tkt_mtime);
 '
 config /config 680
-1533772738 'ticket-common' value 'set type_choices {
+1541453814 'ticket-common' value 'set type_choices {
    Code_Defect
    Build_Problem
    Documentation
@@ -107,8 +151,8 @@ set subsystem_choices {
 set assigned_choices {
   unassigned
 }'
-config /config 3468
-1533771088 'ticket-newpage' value '<th1>
+config /config 3598
+1541454339 'ticket-newpage' value '<th1>
   if {![info exists mutype]} {set mutype {[links only]}}
   if {[info exists submit]} {
      set status Open
@@ -152,16 +196,17 @@ Enter a one-line summary of the ticket:<br />
 the problem?</td>
 </tr>
 
-<tr><td align="right">Assigned to:</td><td>
-<th1>combobox assigned_to $assigned_choices 1</th1>
-</td></tr>
-
 <tr>
 <td align="right">Severity:</td>
 <td align="left"><th1>combobox severity $severity_choices 1</th1></td>
 <td align="left">How debilitating is the problem?  How badly does the problem
 affect the operation of the product?</td>
 </tr>
+
+<tr><td align="right">Assigned to:</td><td>
+<th1>combobox assigned_to $assigned_choices 1</th1>
+</td></tr>
+
 
 <th1>enable_output [expr { "$login" eq "anonymous"}]</th1>
 <tr>
@@ -174,6 +219,10 @@ affect the operation of the product?</td>
 Used by developers to contact you with questions.</td>
 </tr>
 <th1>enable_output 1</th1>
+
+<tr><td align="right">Reported by:</td><td>
+<input type="text" name="opened_by" size="40" value="$<opened_by>">
+</td></tr>
 
 <tr>
 <td colspan="3">
@@ -232,8 +281,8 @@ button to create the new ticket</td>
 </tr>
 </table>
 '
-config /config 3493
-1533770747 'ticket-viewpage' value '<table cellpadding="5">
+config /config 3503
+1541453952 'ticket-viewpage' value '<table cellpadding="5">
 <tr><td class="tktDspLabel">Ticket&nbsp;UUID:</td>
 <th1>
 if {[info exists tkt_uuid]} {
@@ -285,14 +334,13 @@ if {[info exists tkt_datetime]} {
   <td class="tktDspLabel">Contact:</td><td class="tktDspValue">
   $<private_contact>
   </td>
+  <td align="right">Assigned to:</td><td bgcolor="#d0d0d0">
+  $<assigned_to>
+  </td>
+  <td align="right">Opened by:</td><td bgcolor="#d0d0d0">
+  $<opened_by>
+  </td>
 <th1>enable_output 1</th1>
-<td align="right">Assigned to:</td><td bgcolor="#d0d0d0">
-$<assigned_to>
-</td>
-<td align="right">Opened by:</td><td bgcolor="#d0d0d0">
-$<opened_by>
-</td>
-
 </tr>
 <tr><td class="tktDspLabel">Version&nbsp;Found&nbsp;In:</td>
 <td colspan="3" valign="top" class="tktDspValue">
@@ -350,8 +398,8 @@ if {$seenRow} {html "</td></tr>\n"}
 </th1>
 </table>
 '
-config /config 3396
-1533770832 'ticket-editpage' value '<th1>
+config /config 3398
+1541454001 'ticket-editpage' value '<th1>
   if {![info exists mutype]} {set mutype {[links only]}}
   if {![info exists icomment]} {set icomment {}}
   if {![info exists username]} {set username $login}
@@ -382,12 +430,12 @@ config /config 3396
 <th1>combobox type $type_choices 1</th1>
 </td></tr>
 
-<tr><td align="right">Assigned to:</td><td>
-<th1>combobox assigned_to $assigned_choices 1</th1>
-</td></tr>
-
 <tr><td class="tktDspLabel">Severity:</td><td>
 <th1>combobox severity $severity_choices 1</th1>
+</td></tr>
+
+<tr><td align="right">Assigned to:</td><td>
+<th1>combobox assigned_to $assigned_choices 1</th1>
 </td></tr>
 
 <tr><td class="tktDspLabel">Priority:</td><td>
@@ -403,15 +451,16 @@ config /config 3396
 </td></tr>
 
 <th1>enable_output [hascap e]</th1>
+  <tr><td class="tktDspLabel">Contact:</td><td>
+  <input type="text" name="private_contact" size="40"
+   value="$<private_contact>" />
+  </td></tr>
+
   <tr><td align="right">Reported by:</td><td>
   <input type="text" name="opened_by" size="40"
    value="$<opened_by>">
   </td></tr>
 
-  <tr><td class="tktDspLabel">Contact:</td><td>
-  <input type="text" name="private_contact" size="40"
-   value="$<private_contact>" />
-  </td></tr>
 <th1>enable_output 1</th1>
 
 <tr><td class="tktDspLabel">Version&nbsp;Found&nbsp;In:</td><td>

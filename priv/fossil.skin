@@ -1,11 +1,9 @@
 # The "skin" configuration exported from
-# repository "/home/bit4bit/policodigo/enetwork/efossil/../efossils.fossil"
-# on 2018-08-08 23:33:48
-config /config 3496
-1530301016 'css' value 'body {
+# repository "/home/bit4bit/pruebas/fossil/t1/repo.fsl"
+# on 2018-11-05 21:09:01
+config /config 4891
+1541451700 'css' value 'body {
     margin: 0 auto;
-    min-width: 800px;
-    padding: 0px 20px;
     background-color: white;
     font-family: sans-serif;
     font-size:14pt;
@@ -22,6 +20,9 @@ a:hover {
     color: #4183C4;
     text-decoration: underline;
 }
+div.forumPosts a:visited {
+    color: #6A7F94;
+}
 
 hr {
     color: #eee;
@@ -30,8 +31,6 @@ hr {
 .title {
     color: #4183C4;
     float:left;
-    padding-top: 30px;
-    padding-bottom: 10px;
 }
 .title h1 {
     display:inline;
@@ -48,7 +47,7 @@ hr {
 .content h2 {
     font-size: 1.15em;
 }
-.content h2 {
+.content h3 {
     font-size: 1.05em;
     font-weight: bold;
 }
@@ -79,20 +78,21 @@ hr {
 .status {
     float:right;
     font-size:.7em;
-    padding-top:50px;
 }
 
 .mainmenu {
     font-size:.8em;
     clear:both;
-    padding:10px;
     background:#eaeaea linear-gradient(#fafafa, #eaeaea) repeat-x;
     border:1px solid #eaeaea;
     border-radius:5px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    z-index: 21;  /* just above hbdrop */
 }
 
 .mainmenu a {
-    padding: 10px 20px;
     text-decoration:none;
     color: #777;
     border-right:1px solid #eaeaea;
@@ -103,9 +103,22 @@ hr {
     border-bottom:2px solid #D26911;
 }
 
+div#hbdrop {
+    background-color: white;
+    border: 1px solid black;
+    border-top: white;
+    border-radius: 0 0 0.5em 0.5em;
+    display: none;
+    font-size: 80%;
+    left: 2em;
+    width: 90%;
+    padding-right: 1em;
+    position: absolute;
+    z-index: 20;  /* just below mainmenu, but above timeline bubbles */
+}
+
 .submenu {
     font-size: .7em;
-    margin-top: 10px;
     padding: 10px;
     border-bottom: 1px solid #ccc;
 }
@@ -137,6 +150,11 @@ hr {
 }
 .content blockquote {
     padding: 0 15px;
+}
+div.forumHierRoot blockquote, div.forumHier blockquote {
+    background-color: rgba(65, 131, 196, 0.1);
+    border-left: 3px solid #254769;
+    padding: .1em 1em;
 }
 
 table.report {
@@ -188,6 +206,10 @@ td.tktDspValue pre {
     white-space: pre-wrap;
 }
 
+span.timelineDetail {
+    font-size: 90%;
+}
+
 .footer {
     border-top: 1px solid #ccc;
     padding: 10px;
@@ -202,76 +224,123 @@ div.timelineDate {
 span.submenuctrl, span.submenuctrl input, select.submenuctrl {
   color: #777;
 }
+span.submenuctrl {
+  white-space: nowrap;
+}
+div.submenu label {
+  white-space: nowrap;
+}
+
+@media screen and (max-width: 600px) {
+  /* Spacing for mobile */
+  body {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  .title {
+    padding-top: 0px;
+    padding-bottom: 0px;
+  }
+  .status {padding-top: 0px;}
+  .mainmenu a {
+    padding: 10px 10px;
+  }
+  .mainmenu {
+    padding: 10px;
+  }
+  .desktoponly {
+    display: none;
+  }
+}
+@media screen and (min-width: 600px) {
+  /* Spacing for desktop */
+  body {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .title {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+  .status {padding-top: 30px;}
+  .mainmenu a {
+    padding: 10px 20px;
+  }
+  .mainmenu {
+    padding: 10px;
+  }
+}
+@media screen and (max-width: 1200px) {
+  /* Special declarations for narrow desktop or wide mobile */
+  .wideonly {
+    display: none;
+  }
+}
 '
-config /config 1340
-1530301040 'header' value '<html>
-  <head>
-    <base href="$baseurl/$current_page" />
-    <title>$<project_name>: $<title></title>
-      <link rel="alternate" type="application/rss+xml" title="RSS Feed"
-            href="$home/timeline.rss" />
-      <link rel="stylesheet" href="$stylesheet_url" type="text/css"
-            media="screen" />
-  </head>
-
-  <body>
-    <div class="header">
-      <div class="title"><h1>$<project_name></h1>$<title></div>
-        <div class="status"><th1>
-     if {[info exists login]} {
-       html "$login\n"
-     }
-        </th1></div>
-    </div>
-
-    <div class="mainmenu">
+config /config 1194
+1541451701 'header' value '<div class="header">
+  <div class="title"><h1>$<project_name></h1>$<title></div>
+    <div class="status"><th1>
+ if {[info exists login]} {
+   html "$login\n"
+ }
+    </th1></div>
+</div>
+<div class="mainmenu">
 <th1>
-proc menulink {url name} {
+proc menulink {url name cls} {
   upvar current_page current
   upvar home home
   if {[string range $url 0 [string length $current]] eq "/$current"} {
-    html "<a href=''$home$url'' class=''active''>$name</a>\n"
+    html "<a href=''$home$url'' class=''active $cls''>$name</a>\n"
   } else {
-    html "<a href=''$home$url''>$name</a>\n"
+    html "<a href=''$home$url'' class=''$cls''>$name</a>\n"
   }
 }
-menulink $index_page Home
+html "<a href=''#''>&#9776;</a>"
+menulink $index_page Home {}
 if {[anycap jor]} {
-  menulink /timeline Timeline
+  menulink /timeline Timeline {}
 }
 if {[hascap oh]} {
-  menulink /dir?ci=tip Files
+  menulink /dir?ci=tip Files desktoponly
 }
 if {[hascap o]} {
-  menulink  /brlist Branches
-  menulink  /taglist Tags
+  menulink  /brlist Branches desktoponly
+  menulink  /taglist Tags wideonly
+}
+if {[anycap 23456] || [anoncap 2] || [anoncap 3]} {
+  menulink /forum Forum wideonly
 }
 if {[hascap r]} {
-  menulink /ticket Tickets
+  menulink /ticket Tickets wideonly
 }
 if {[hascap j]} {
-  menulink /wiki Wiki
+  menulink /wiki Wiki wideonly
 }
 if {[hascap s]} {
-  menulink /setup Admin
+  menulink /setup Admin {}
 } elseif {[hascap a]} {
-  menulink /setup_ulist Users
+  menulink /setup_ulist Users {}
 }
 </th1></div>
+<div id=''hbdrop''></div>
 '
-config /config 224
-1530301016 'footer' value '<div class="footer">
+config /config 266
+1541451701 'footer' value '<div class="footer">
 This page was generated in about
 <th1>puts [expr {([utime]+[stime]+1000)/1000*0.001}]</th1>s by
 Fossil $release_version $manifest_version $manifest_date
 </div>
-</body></html>
+<script nonce="$nonce">
+<th1>styleScript</th1>
+</script>
 '
 config /config 149
-1530301016 'details' value 'timeline-arrowheads:        1
+1541451701 'details' value 'timeline-arrowheads:        1
 timeline-circle-nodes:      1
 timeline-color-graph-lines: 1
 white-foreground:           0
 '
 config /config 41
-1529810064 'timeline-plaintext' value '1'
+1541450533 'timeline-plaintext' value '1'

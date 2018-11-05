@@ -9,8 +9,8 @@ defmodule Efossils.Command.Collaborative do
   end
 
   def append_assigned_to(ctx, username) do
-    {:ok, ticket_common} = Command.db_config_get(ctx, "ticket-common")
-    IO.puts inspect ticket_common
+    {:ok, ticket_common0} = Command.db_config_get(ctx, "ticket-common")
+    ticket_common = String.trim(ticket_common0, "'")
     case assigned_choices_parse(ticket_common) do
       [] -> {:error, :parser}
       users ->
@@ -18,14 +18,14 @@ defmodule Efossils.Command.Collaborative do
           Enum.map(users, &("  #{&1}")) ++ ["  #{username}"] ++ [""] #} al reemplazar
         s_users = Enum.join(users_appended, "\r\n")
         out = Regex.replace(~r/set assigned_choices *\{[^\}]+/, ticket_common, s_users)
-        |> String.trim
+        |> String.trim |> String.trim("'")
         Command.db_config_set(ctx, "ticket-common", out)
     end
   end
 
   def remove_assigned_to(ctx, username) do
-    {:ok, ticket_common} = Command.db_config_get(ctx, "ticket-common")
-
+    {:ok, ticket_common0} = Command.db_config_get(ctx, "ticket-common")
+    ticket_common = String.trim(ticket_common0, "'")
     case assigned_choices_parse(ticket_common) do
       [] -> {:error, :parser}
       users ->
@@ -34,13 +34,13 @@ defmodule Efossils.Command.Collaborative do
           Enum.map(users_without_username, &("  #{&1}")) ++ [""] #} al reemplazar
         s_users = Enum.join(users_appended, "\r\n")
         out = Regex.replace(~r/set assigned_choices *\{[^\}]+/, ticket_common, s_users)
-        |> String.trim
+        |> String.trim |> String.trim("'")
         Command.db_config_set(ctx, "ticket-common", out)
     end
   end
 
   defp assigned_choices_parse(data) do
-    case Regex.scan(~r/set assigned_choices \{([^\}]+)\}/, data) do
+    case Regex.scan(~r/set assigned_choices *\{([^\}]+)\}/, data) do
       [] -> []
       data ->
         [match] = data

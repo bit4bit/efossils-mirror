@@ -21,8 +21,8 @@ defmodule EfossilsWeb.RepositoryController do
   alias Efossils.Accounts
   alias Efossils.Repo
 
-  @default_capabilities "cdefgijkmnortuvwx"
-  @default_capabilities_collaborator "cdefgijkmnortuvwx"
+  @default_capabilities "cdefgijkmnortuvwx4"
+  @default_capabilities_collaborator "cdefgijkmnortuvwx4"
   @sources_migration [{"GIT", "git"}, {"Fossil", "fossil"}]
   
   def new(conn, _params) do
@@ -56,7 +56,7 @@ defmodule EfossilsWeb.RepositoryController do
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "search-wiki", "1"),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "search-technote", "1"),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "search-ci", "0"),
-                  {:ok, _} <- Efossils.Command.setting(ctx, "default-perms", "dei"),
+                  {:ok, _} <- Efossils.Command.setting(ctx, "default-perms", "dei2"),
                   {:ok, _} <- Efossils.Command.password_user(ctx,
                     login_username, conn.assigns[:current_user].email),
                   {:ok, _} <- Efossils.Command.capabilities_user(ctx, login_username, @default_capabilities),
