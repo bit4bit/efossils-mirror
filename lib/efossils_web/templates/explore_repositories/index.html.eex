@@ -79,7 +79,7 @@
         </div>
         <div class="extra content">
           <a href="<%= EfossilsWeb.Utils.fossil_path("xfer", repository.owner, repository) %>" onclick="return false;" title="Copy this link, then run *fossil clone <url>*"><i class="left floated octicon octicon-clippy"></i></a>
-          <a target="__blank" href="<%= EfossilsWeb.Utils.fossil_path("index", repository.owner, repository) %>" class="ui button">
+          <a target="repository-<%= repository.id %>" href="<%= EfossilsWeb.Utils.fossil_path("index", repository.owner, repository) %>" class="ui button">
             Open
           </a>
         </div>
