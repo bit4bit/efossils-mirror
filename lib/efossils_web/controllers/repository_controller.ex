@@ -21,6 +21,7 @@ defmodule EfossilsWeb.RepositoryController do
   alias Efossils.Accounts
   alias Efossils.Repo
 
+  @nobody_capabilities "gjorz2"
   @default_capabilities "cdefgijkmnortuvwx4"
   @default_capabilities_collaborator "cdefgijkmnortuvwx4"
   @sources_migration [{"GIT", "git"}, {"Fossil", "fossil"}]
@@ -45,8 +46,8 @@ defmodule EfossilsWeb.RepositoryController do
     |> Accounts.Repository.prepare_attrs
 
     login_username = conn.assigns[:current_user].lower_name
-    result = with {:ok, repository} <- Accounts.create_repository(repository_params),
-                  {:ok, ctx} <- Accounts.context_repository(repository,
+    {:ok, repository} = Accounts.create_repository(repository_params)
+    result = with {:ok, ctx} <- Accounts.context_repository(repository,
                     default_username: login_username),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "project-name", repository.name),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "project-description", repository.description),
@@ -63,6 +64,7 @@ defmodule EfossilsWeb.RepositoryController do
                   {:ok, _} <- Efossils.Command.config_import(ctx, "fossil.skin"),
                   {:ok, _} <- Efossils.Command.config_import(ctx, "fossil.ticket.skin"),
                   {:ok, _} <- Efossils.Command.Collaborative.append_assigned_to(ctx, login_username),
+                  {:ok, _} <- Efossils.Command.capabilities_user(ctx, "nobody", @nobody_capabilities),
                   {:ok, _} <- Accounts.update_repository(repository, Enum.into(ctx, %{})),
       do: {:ok, repository}
     
@@ -72,13 +74,23 @@ defmodule EfossilsWeb.RepositoryController do
         |> put_flash(:info, "Repository created successfully.")
         |> redirect(to: "/dashboard")
       {:error, %Ecto.Changeset{} = changeset} ->
+        users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
+
+        render(conn, "new.html",
+          changeset: changeset,
+          users: users,
+          licenses: build_list_licenses())
+      {:error, _} ->
         Accounts.delete_repository(repository)
         with {:ok, ctx} <- Accounts.context_repository(repository),
              {:ok, _} <- Efossils.Command.delete_repository(ctx),
         do: :ok
-
+        
         users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
-
+        changeset = Accounts.change_repository(
+          %Accounts.Repository{owner_id: conn.assigns[:current_user].id}
+        )
+      
         render(conn, "new.html",
           changeset: changeset,
           users: users,
