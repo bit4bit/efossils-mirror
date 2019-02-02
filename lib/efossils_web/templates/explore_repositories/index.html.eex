@@ -72,7 +72,7 @@
           </div>
           <div class="ui divider"></div>
           <div class="text">
-            <pre>
+            <pre style="white-space: pre-wrap;">
             <%= repository.description %>
             </pre>
           </div>
