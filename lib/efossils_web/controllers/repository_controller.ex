@@ -72,6 +72,11 @@ defmodule EfossilsWeb.RepositoryController do
         |> put_flash(:info, "Repository created successfully.")
         |> redirect(to: "/dashboard")
       {:error, %Ecto.Changeset{} = changeset} ->
+        Accounts.delete_repository(repository)
+        with {:ok, ctx} <- Accounts.context_repository(repository),
+             {:ok, _} <- Efossils.Command.delete_repository(ctx),
+        do: :ok
+
         users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
 
         render(conn, "new.html",
