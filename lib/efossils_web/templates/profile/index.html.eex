@@ -15,6 +15,11 @@
 <% end %>
 
 <div class="field">
+  <label>Username</label>
+  <input type="text" value="<%= @current_user.lower_name %>" readonly="readonly"></input>
+</div>
+
+<div class="field">
   <%= label f, :name %>
   <%= text_input f, :name %>
   <%= error_tag f, :name %>

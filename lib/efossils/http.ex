@@ -162,7 +162,6 @@ defmodule Efossils.Http do
   def stream_output(port, acc) do
     receive do
       {port, {:data, data}} ->
-        IO.puts("get data")
         acc = acc <> data
         stream_output(port, acc)
       {port, :closed} ->

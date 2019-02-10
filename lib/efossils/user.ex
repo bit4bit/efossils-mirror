@@ -30,7 +30,7 @@ defmodule Efossils.User do
     field :name, :string
 
     field :username, :string
-    # DEPRECATED: `lower_name` se reemplaza por `username`
+    # username saneado
     field :lower_name, :string
     field :keep_email_private, :boolean
     field :location, :string

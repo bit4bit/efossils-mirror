@@ -105,7 +105,13 @@ defmodule EfossilsWeb.Proxy.Router do
     credentials = first_get_req_header(conn, "authorization")
     case get_credentials_basic_auth(credentials) do
       {email, password} ->
-        case Efossils.Repo.get_by(Efossils.User, email: email) do
+        user = case Efossils.Repo.get_by(Efossils.User, email: email) do
+                 nil -> 
+                   Efossils.Repo.get_by(Efossils.User, lower_name: email)
+                 user ->
+                   user
+               end
+        case user do
           nil -> conn
           user ->
             if Comeonin.Bcrypt.checkpw(password, user.password_hash) do
