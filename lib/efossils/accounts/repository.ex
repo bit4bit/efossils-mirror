@@ -232,7 +232,7 @@ defmodule Efossils.Accounts.Repository do
         case user do
           nil -> changeset
           [max_repo_creation, num_repos] ->
-            if (num_repos + 1) > max_repo_creation do
+            if max_repo_creation > 0 and (num_repos + 1) > max_repo_creation do
               add_error(changeset, :owner_id, "sorry, get limit please contact us")
             else
               changeset
