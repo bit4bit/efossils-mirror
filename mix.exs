@@ -54,6 +54,7 @@ defmodule Efossils.Mixfile do
       {:gen_smtp, "~> 0.12.0"},
       {:jason, "~> 1.0"},
       {:ecto, "~> 3.0"},
+      {:poison, "~> 3.1"},
       {:swoosh, "~> 0.21"},
       {:pow, "~> 1.0.1"},
       {:comeonin, "~> 3.0"}
