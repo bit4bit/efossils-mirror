@@ -2,7 +2,6 @@ use Mix.Config
 
 config :efossils,
   fossil_base_url: "http://localhost:4000"
-
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #
@@ -50,6 +49,9 @@ config :logger, :console, format: "[$level] $message\n"
 # Set a higher stacktrace during development. Avoid configuring such
 # in production as building large stacktraces may be expensive.
 config :phoenix, :stacktrace_depth, 20
+
+config :efossils, EfossilsWeb.PowMailer,
+  adapter: Swoosh.Adapters.Test
 
 # Configure your database
 config :efossils, Efossils.Repo,

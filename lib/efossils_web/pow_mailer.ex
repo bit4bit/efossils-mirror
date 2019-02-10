@@ -1,7 +1,7 @@
 defmodule EfossilsWeb.PowMailer do
   @moduledoc false
   use Pow.Phoenix.Mailer
-  use Swoosh.Mailer, otp_app: :my_app
+  use Swoosh.Mailer, otp_app: :efossils
 
   import Swoosh.Email
 

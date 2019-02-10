@@ -1,3 +1,9 @@
+<%= if @changeset.data.unconfirmed_email do %>
+  <div>
+    <p>Click the link in the confirmation email to change your email to <%= @changeset.data.unconfirmed_email %></span>.</p>
+  </div>
+<% end %>
+
 <%= form_for @changeset, profile_path(@conn, :update), [class: "ui form segment"], fn f -> %>
 <h4 class="ui right floated header"><%= gettext "General" %></h4>
 

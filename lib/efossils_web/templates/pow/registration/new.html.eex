@@ -27,6 +27,12 @@
   <% end %>
 
   <div class="field">
+  <%= label f, :username %>
+  <%= text_input f, :username %>
+  <%= error_tag f, :username %>
+  </div>
+
+  <div class="field">
   <%= label f, @changeset.data.__struct__.pow_user_id_field() %>
   <%= text_input f, @changeset.data.__struct__.pow_user_id_field() %>
   <%= error_tag f, @changeset.data.__struct__.pow_user_id_field() %>
@@ -50,4 +56,4 @@
 <% end %>
 
 
-<span><%= link "Sign in", to: pow_session_path(@conn, :new) %></span>
+<span><%= link gettext("Sign in"), to: pow_session_path(@conn, :new) %></span>

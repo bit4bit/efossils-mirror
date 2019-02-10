@@ -55,7 +55,7 @@ defmodule Efossils.User do
 
   def changeset_profile(model, params \\ %{}) do
     model
-    |> cast(params, [:name, :lower_name, :keep_email_private, :location, :website, :avatar_email, :avatar, :use_custom_avatar, :password, :confirm_password])
+    |> cast(params, [:name, :lower_name, :email, :keep_email_private, :location, :website, :avatar_email, :avatar, :use_custom_avatar, :password, :confirm_password])
     |> Efossils.Utils.build_lower_name()
     |> validate_required([:lower_name, :name, :email])
     |> validate_format(:email, ~r/@/)
@@ -66,7 +66,7 @@ defmodule Efossils.User do
   
   def changeset(model, params \\ %{}) do
     model
-    |> cast(params, [:name, :username, :keep_email_private, :location, :website, :max_repo_creation, :prohibit_login, :avatar_email, :avatar, :use_custom_avatar, :num_repos, :num_stars])
+    |> cast(params, [:name, :username, :email, :keep_email_private, :location, :website, :max_repo_creation, :prohibit_login, :avatar_email, :avatar, :use_custom_avatar, :num_repos, :num_stars])
     |> Efossils.Utils.build_lower_name()
     |> put_name()
     |> validate_required([:username, :email])
