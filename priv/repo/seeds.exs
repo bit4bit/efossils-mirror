@@ -10,20 +10,23 @@
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 
-Efossils.Repo.delete_all Efossils.Coherence.User
+Efossils.Repo.delete_all Efossils.User
 
-Efossils.Coherence.User.changeset(%Efossils.Coherence.User{}, %{name: "Efossils user",
-                                                                lower_name: "efossils_main",
-                                                                email: "efossils@local.local",
-                                                                password: "efossils",
-                                                                password_confirmation: "efossils"})
+Efossils.User.changeset(%Efossils.User{}, %{name: "Efossils user",
+                                            username: "efossils_main",
+                                            lower_name: "efossils_main",
+                                            email: "efossils@local.local",
+                                            password: "efossilslocalhost",
+                                            confirm_password: "efossilslocalhost"})
 |> Efossils.Repo.insert!
-|> Coherence.ControllerHelpers.confirm!
+|> PowEmailConfirmation.Ecto.Context.confirm_email(otp_app: :efossils)
 
-Efossils.Coherence.User.changeset(%Efossils.Coherence.User{}, %{name: "Efossils Collaborator",
-                                                                lower_name: "efossils_collaborator",
-                                                                email: "efossilscollaborator@local.local",
-                                                                password: "efossils",
-                                                                password_confirmation: "efossils"})
+Efossils.User.changeset(%Efossils.User{}, %{name: "Efossils Collaborator",
+                                            username: "efossils_collaborator",
+                                            lower_name: "efossils_collaborator",
+                                            email: "efossilscollaborator@local.local",
+                                            password: "efossilslocalhost",
+                                            confirm_password: "efossilslocalhost"})
 |> Efossils.Repo.insert!
-|> Coherence.ControllerHelpers.confirm!
+|> PowEmailConfirmation.Ecto.Context.confirm_email(otp_app: :efossils)
+
