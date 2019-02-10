@@ -91,9 +91,18 @@ defmodule EfossilsWeb.Proxy.Router do
     opts = Pow.Plug.Session.init([])
     conn |> Pow.Plug.Session.call(opts)
   end
-  
+
+  defp first_get_req_header(conn, key) do
+    case get_req_header(conn, key) do
+      [val | _rest] ->
+        val
+      [] ->
+        nil
+    end
+  end
+
   defp put_user_from_basic_auth(conn) do
-    [credentials | _rest] = get_req_header(conn, "authorization")
+    credentials = first_get_req_header(conn, "authorization")
     case get_credentials_basic_auth(credentials) do
       {email, password} ->
         case Efossils.Repo.get_by(Efossils.User, email: email) do
