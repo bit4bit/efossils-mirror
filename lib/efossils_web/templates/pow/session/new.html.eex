@@ -17,11 +17,31 @@
      # You should have received a copy of the GNU Affero General Public License
      # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -->
-<html>
-  <head>
-    <title><%= @email.subject %></title>
-  </head>
-  <body>
-    <%= render @view_module, @view_template, assigns %>
-  </body>
-</html>
+<h1><%= gettext("Sign In") %></h1>
+
+<%= form_for @changeset, @action, [as: :user, class: "ui form segment"], fn f -> %>
+  <%= if @changeset.action do %>
+    <div class="ui red message">
+      <p><%= gettext("Oops, something went wrong! Please check the errors below.")%></p>
+    </div>
+  <% end %>
+
+  <div class="field">
+  <%= label f, @changeset.data.__struct__.pow_user_id_field() %>
+  <%= text_input f, @changeset.data.__struct__.pow_user_id_field() %>
+  <%= error_tag f, @changeset.data.__struct__.pow_user_id_field() %>
+  </div>
+
+  <div class="field">
+  <%= label f, :password %>
+  <%= password_input f, :password %>
+  <%= error_tag f, :password %>
+  </div>
+  
+  <div class="form-group">
+    <%= submit gettext("Sign in"), class: "ui primary submit button" %>
+  </div>
+<% end %>
+
+
+<span><%= link "Register", to: pow_registration_path(@conn, :new) %></span>

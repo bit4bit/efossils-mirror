@@ -29,7 +29,7 @@ defmodule Efossils.Accounts.Collaboration do
     field :fossil_username, :string
 
     belongs_to :repository, Efossils.Accounts.Repository
-    belongs_to :user, Efossils.Coherence.User
+    belongs_to :user, Efossils.User
 
     timestamps()
   end

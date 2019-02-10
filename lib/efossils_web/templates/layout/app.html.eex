@@ -50,7 +50,7 @@
           </div>
         </div>
         <div class="right item">
-          <%= link(gettext("Logout"), to: session_path(@conn, :delete), method: :delete, class: "ui button")%>
+          <%= link(gettext("Logout"), to: pow_session_path(@conn, :delete), method: :delete, class: "ui button")%>
         </div>
       </div>
 

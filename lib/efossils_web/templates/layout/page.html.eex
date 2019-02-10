@@ -41,7 +41,7 @@
           <a class="item" href="/explore/repositories"><%= gettext "Explore"%></a>
         </div>
         <div class="right item">
-          <a class="item" href="/sessions/new">
+          <a class="item" href="<%= pow_session_path(@conn, :new) %>">
             <i class="octicon octicon-sign-in"></i><%= gettext "Sign In" %>
           </a>
         </div>

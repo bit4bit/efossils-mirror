@@ -16,16 +16,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule Efossils.Coherence.User do
+defmodule Efossils.User do
   @moduledoc false
   use Ecto.Schema
-  use Coherence.Schema
-
+  import Ecto.Changeset
+  use Pow.Ecto.Schema,
+    password_hash_methods: {&Comeonin.Bcrypt.hashpwsalt/1,
+                            &Comeonin.Bcrypt.checkpw/2}
+  use Pow.Extension.Ecto.Schema,
+    extensions: [PowEmailConfirmation, PowResetPassword]
   
   schema "users" do
     field :name, :string
-    field :email, :string
-    coherence_schema()
 
     field :username, :string
     # DEPRECATED: `lower_name` se reemplaza por `username`
@@ -45,36 +47,41 @@ defmodule Efossils.Coherence.User do
 
     has_many :repositories, Efossils.Accounts.Repository, [foreign_key: :owner_id]
     has_many :stars, Efossils.Accounts.Star
-
+    
+    pow_user_fields()
+    
     timestamps()
   end
 
   def changeset_profile(model, params \\ %{}) do
     model
-    |> cast(params, [:name, :email] ++ coherence_fields() ++ [:lower_name, :keep_email_private, :location, :website, :avatar_email, :avatar, :use_custom_avatar, :password, :password_confirmation])
+    |> cast(params, [:name, :lower_name, :email, :keep_email_private, :location, :website, :avatar_email, :avatar, :use_custom_avatar, :password, :confirm_password])
     |> Efossils.Utils.build_lower_name()
     |> validate_required([:lower_name, :name, :email])
     |> validate_format(:email, ~r/@/)
     |> unique_constraint(:email)
-    |> validate_coherence(params)
+    |> pow_changeset(params)
+    |> pow_extension_changeset(params)
   end
   
   def changeset(model, params \\ %{}) do
     model
-    |> cast(params, [:name, :email] ++ coherence_fields() ++ [:username, :keep_email_private, :location, :website, :max_repo_creation, :prohibit_login, :avatar_email, :avatar, :use_custom_avatar, :num_repos, :num_stars])
+    |> cast(params, [:name, :username, :email, :keep_email_private, :location, :website, :max_repo_creation, :prohibit_login, :avatar_email, :avatar, :use_custom_avatar, :num_repos, :num_stars])
     |> Efossils.Utils.build_lower_name()
     |> put_name()
     |> validate_required([:username, :email])
     |> validate_format(:email, ~r/@/)
     |> unique_constraint(:email)
     |> unique_constraint(:username)
-    |> validate_coherence(params)
+    |> pow_changeset(params)
+    |> pow_extension_changeset(params)
   end
   
   def changeset(model, params, :password) do
     model
     |> cast(params, ~w(password password_confirmation reset_password_token reset_password_sent_at))
-    |> validate_coherence_password_reset(params)
+    |> pow_changeset(params)
+    |> pow_extension_changeset(params)
   end
 
   defp put_name(changeset) do
