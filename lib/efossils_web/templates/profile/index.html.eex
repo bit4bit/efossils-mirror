@@ -46,23 +46,30 @@
   <%= label f, :current_password %>
   <%= password_input f, :current_password %>
   <%= if message = f.errors[:current_password] do %>
-    <div class="ui red message"><%=  message |> elem(0) %></div>
+    <div class="ui red message">
+  <%= error_tag f, :current_password %>
+    </div>
   <% end %>
 </div>
+
 
 <div class="field">
   <%= label f, :password %>
   <%= password_input f, :password %>
   <%= if message = f.errors[:password] do %>
-    <div class="ui red message"><%=  message |> elem(0) %></div>
+    <div class="ui red message">
+  <%= error_tag f, :password %>
+    </div>
   <% end %>
 </div>
 
 <div class="field">
-  <%= label f, :password_confirmation %>
-  <%= password_input f, :password_confirmation %>
-  <%= if message = f.errors[:password_confirmation] do %>
-    <div class="ui red message"><%=  message |> elem(0) %></div>
+  <%= label f, :confirm_password %>
+  <%= password_input f, :confirm_password %>
+  <%= if message = f.errors[:confirm_password] do %>
+    <div class="ui red message">
+  <%= error_tag f, :confirm_password %>
+    </div>
   <% end %>
 </div>
 

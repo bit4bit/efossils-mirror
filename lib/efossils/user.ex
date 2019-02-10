@@ -55,7 +55,7 @@ defmodule Efossils.User do
 
   def changeset_profile(model, params \\ %{}) do
     model
-    |> cast(params, [:name, :lower_name, :keep_email_private, :location, :website, :avatar_email, :avatar, :use_custom_avatar, :password])
+    |> cast(params, [:name, :lower_name, :keep_email_private, :location, :website, :avatar_email, :avatar, :use_custom_avatar, :password, :confirm_password])
     |> Efossils.Utils.build_lower_name()
     |> validate_required([:lower_name, :name, :email])
     |> validate_format(:email, ~r/@/)

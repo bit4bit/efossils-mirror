@@ -28,7 +28,8 @@ defmodule EfossilsWeb.ProfileController do
   def update(conn, %{"user" => user_params}) do
     case Accounts.update_user_profile(conn.assigns[:current_user], user_params) do
       {:ok, user} ->
-        Coherence.SessionController.delete(conn, %{})
+        Pow.Phoenix.SessionController.process_delete(conn, %{})
+        |> Pow.Phoenix.SessionController.respond_delete
       {:error, %Ecto.Changeset{} = changeset} ->
         render conn, "index.html", changeset: changeset
     end

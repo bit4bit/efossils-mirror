@@ -88,17 +88,18 @@ defmodule EfossilsWeb.Proxy.Router do
   end
 
   defp put_user_from_session(conn) do
-    opts = Coherence.Authentication.Session.init([])
-    conn |> Coherence.Authentication.Session.call(opts)
+    opts = Pow.Plug.Session.init([])
+    conn |> Pow.Plug.Session.call(opts)
   end
   
   defp put_user_from_basic_auth(conn) do
-    case get_credentials_basic_auth(Coherence.Authentication.Utils.get_first_req_header(conn,  "authorization")) do
+    [credentials | _rest] = get_req_header(conn, "authorization")
+    case get_credentials_basic_auth(credentials) do
       {email, password} ->
         case Efossils.Repo.get_by(Efossils.User, email: email) do
           nil -> conn
           user ->
-            if Efossils.Coherence.User.checkpw(password, user.password_hash) do
+            if Comeonin.Bcrypt.checkpw(password, user.password_hash) do
               assign(conn, :authenticated_user, user)
             else
               conn
