@@ -199,7 +199,7 @@ defmodule Efossils.Accounts.Repository do
     field :license, :string
     field :fossil_extras, :map
     belongs_to :base_repository, Efossils.Accounts.Repository
-    belongs_to :owner, Efossils.Coherence.User
+    belongs_to :owner, Efossils.User
     has_many :collaborations, Efossils.Accounts.Collaboration
     has_many :collaborations_users,  through: [:collaborations, :user]
     timestamps()
@@ -226,7 +226,7 @@ defmodule Efossils.Accounts.Repository do
   def validate_max_repositories(changeset) do
     case fetch_field(changeset, :owner_id) do
       {_, owner_id} ->
-        user = Efossils.Repo.one(from u in Efossils.Coherence.User,
+        user = Efossils.Repo.one(from u in Efossils.User,
         select: [u.max_repo_creation, u.num_repos],
         where: u.id == ^owner_id)
         case user do

@@ -20,7 +20,7 @@ defmodule Efossils.Mixfile do
   def application do
     [
       mod: {Efossils.Application, []},
-      extra_applications: [:logger, :runtime_tools, :swoosh, :gen_smtp, :httpotion, :porcelain, :coherence,
+      extra_applications: [:logger, :runtime_tools, :swoosh, :gen_smtp, :httpotion, :porcelain,
                            :scrivener, :scrivener_ecto,:scrivener_html]
     ]
   end
@@ -47,14 +47,16 @@ defmodule Efossils.Mixfile do
       {:scrivener_ecto, "~> 2.0"},
       {:scrivener_html, "~> 1.8"},
       {:sizeable, "~> 1.0"},
-      {:coherence, path: "../coherence", override: true},
       {:credo, "~> 0.9.1", only: [:dev, :test], runtime: false},
       {:porcelain, "~> 2.0"},
       {:httpotion, "~> 3.1.0"},
       {:distillery, "~> 1.5", runtime: false},
       {:gen_smtp, "~> 0.12.0"},
       {:jason, "~> 1.0"},
-      {:ecto, "~> 3.0", override: true}
+      {:ecto, "~> 3.0"},
+      {:swoosh, "~> 0.21"},
+      {:pow, "~> 1.0.1"},
+      {:comeonin, "~> 3.0"}
     ]
   end
 

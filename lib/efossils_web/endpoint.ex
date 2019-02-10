@@ -54,6 +54,7 @@ defmodule EfossilsWeb.Endpoint do
     store: :cookie,
     key: "_efossils_key",
     signing_salt: "hBkTy4XT"
+  plug Pow.Plug.Session, otp_app: :efossils
 
   plug EfossilsWeb.Router
 

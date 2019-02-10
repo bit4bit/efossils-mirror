@@ -29,30 +29,18 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:user_id]
 
+config :efossils, :pow,
+  repo: Efossils.Repo,
+  user: Efossils.User,
+  extensions: [PowEmailConfirmation, PowResetPassword],
+  controller_callbacks: Pow.Extension.Phoenix.ControllerCallbacks,
+  mailer_backend: EfossilsWeb.PowMailer
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env}.exs"
 
-# %% Coherence Configuration %%   Don't remove this line
-config :coherence,
-  user_schema: Efossils.Coherence.User,
-  repo: Efossils.Repo,
-  module: Efossils,
-  web_module: EfossilsWeb,
-  router: EfossilsWeb.Router,
-  messages_backend: EfossilsWeb.Coherence.Messages,
-  logged_out_url: "/",
-  user_token: true,
-  email_from_name: "Your Name",
-  email_from_email: "yourname@example.com",
-  #TODO: se deshabilita `trackable`, error con plug 1.6
-  opts: [:authenticatable, :recoverable, :lockable,  :unlockable_with_token, :confirmable, :registerable]
-
-config :coherence, EfossilsWeb.Coherence.Mailer,
-  adapter: Swoosh.Adapters.Sendgrid,
-  api_key: "your api key here"
-# %% End Coherence Configuration %%
-
 config :scrivener_html,
   routes_helper: EfossilsWeb.Router.Helpers,
   view_style: :semantic
+
