@@ -1,7 +1,10 @@
 use Mix.Config
 
 config :efossils,
-  fossil_base_url: "http://localhost:4000"
+  fossil_base_url: "http://localhost:4000",
+  email_from_name: "Efossils",
+  email_from_email: "noreply@localhost.localhost"
+
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #
