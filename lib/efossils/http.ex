@@ -16,6 +16,88 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+defmodule Efossils.HttpSingleRequest do
+  use GenServer
+  alias Efossils.Command
+
+  def start(ctx, method, baseurl, remote_url, headers, body) do
+    GenServer.start(__MODULE__, [ctx, method, baseurl, remote_url, headers, body])
+  end
+
+  def init([ctx, method, baseurl, remote_url, headers, body]) do
+    db_path = Keyword.get(ctx, :db_path)
+    username =  Keyword.get(ctx, :default_username)
+    env = [{"HOME", Keyword.get(ctx, :work_path)},
+           {"FOSSIL_USER", username},
+           {"REMOTE_USER", username}]
+    args = ["http", "--nossl",
+            "--https",
+            "--localauth",
+            "--ipaddr", "127.0.0.1",
+            "--baseurl", "#{baseurl}/",
+            db_path]
+    IO.puts(username)
+    IO.puts(remote_url)
+    IO.puts(db_path)
+    IO.puts(baseurl)
+    IO.puts(method)
+    IO.puts(args)
+    path = System.find_executable(Command.get_command)
+    port = Port.open({:spawn_executable, path}, [:binary, :eof, args: args])
+    smethod = case method do
+                :get -> "GET"
+                :post -> "POST"
+                :put -> "PUT"
+                :delete -> "DELETE"
+              end
+    Port.command(port, "#{smethod} #{remote_url}\n\n")
+    {:ok, {port, nil, ""}}
+  end
+
+  def response(pid) do
+    GenServer.call(pid, :body)
+  end
+
+  def response_decode(response) do
+    [header, body] = String.split(response, "\r\n\r\n", parts: 2)
+    {:ok, {:http_response, _, status_code, _}, header_rest} = :erlang.decode_packet(:http, header, [])
+    headers = decode_headers(header_rest <> "\r\n\r\n", [])
+    {:ok, {body, headers, status_code}}
+  end
+  
+  defp decode_headers(data, headers) do
+    case :erlang.decode_packet(:httph, data, []) do
+      {:ok, {:http_header, _, key, _, value}, rest} ->
+        headers1 = headers ++ [{to_string(key), value}]
+        decode_headers(rest, headers1)
+      {:ok, :http_eoh, _} ->
+        headers
+    end
+  end
+
+  def handle_call(:body, from, {port, _from, acc}) do
+    {:noreply, {port, from, acc}}
+  end
+
+  def handle_info({port, {:data, data}}, {port, from, acc}) do
+    {:noreply, {port, from, acc <> data}}
+  end
+
+  def handle_info({port, :closed}, {port, from, acc} = state) do
+    GenServer.reply(from, {:ok, acc})
+    {:stop, :normal, state}
+  end
+  def handle_info({port, :eof}, {port, from, acc} = state) do
+    GenServer.reply(from, {:ok, acc})
+    {:stop, :normal, state}
+  end
+
+  def handle_info({:EXIT, port, reason}, {port, from, acc} = state) do
+    GenServer.reply(from, {:ok, acc})
+    {:stop, :normal, state}
+  end
+end
+
 defmodule Efossils.Http do
   @moduledoc """
   Abre tunnel a comando *fossil http*
@@ -34,6 +116,12 @@ defmodule Efossils.Http do
     {:ok, {%{}, %{}}}
   end
 
+  def single_request(ctx, method, baseurl, remote_url, headers, body) do
+    {:ok, pid} = Efossils.HttpSingleRequest.start(ctx, method, baseurl, remote_url, headers, body)
+    {:ok, resp} = Efossils.HttpSingleRequest.response(pid)
+    Efossils.HttpSingleRequest.response_decode(resp)
+  end
+
   def terminate(_reason, {by_pid, _} = state) do
     Enum.each(by_pid, fn {pid, server} ->
       Porcelain.Process.signal(server[:proc], :kill)
@@ -45,6 +133,7 @@ defmodule Efossils.Http do
   def ephimeral(ctx, baseurl, is_xfer \\ false) do
     GenServer.call(__MODULE__, {:ephimeral, ctx, baseurl, is_xfer})
   end
+
 
   def handle_call({:ephimeral, ctx, baseurl, is_xfer}, from, {by_pid, by_uid} = state) do
     #se reusa servidor inicialido ya que los /xfer son para el mismo repositorio
@@ -77,7 +166,20 @@ defmodule Efossils.Http do
         {:reply, item[:url], {by_pid, by_uid}}
     end
   end
-  
+
+  def stream_output(port, acc) do
+    receive do
+      {port, {:data, data}} ->
+        IO.puts("get data")
+        acc = acc <> data
+        stream_output(port, acc)
+      {port, :closed} ->
+        :close
+      {:EXIT, port, reason} ->
+        {:error, reason}
+    end
+  end
+
   defp spawn_server(ctx, baseurl) do
     db_path = Keyword.get(ctx, :db_path)
     username =  Keyword.get(ctx, :default_username)
@@ -96,7 +198,8 @@ defmodule Efossils.Http do
     username = Keyword.get(ctx, :default_username)
     "#{db_path}_#{username}"
   end
-  
+
+
   def handle_info({pid, :data, :out, <<"Listening for HTTP requests on TCP port ", port::binary>>},
     {by_pid, by_uid} = state) do
     server = by_pid[pid]

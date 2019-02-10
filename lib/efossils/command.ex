@@ -165,8 +165,8 @@ defmodule Efossils.Command do
                [basic_auth: credentials]
            end
     #fossil_url = get_fossil_url_from_pool(ctx, baseurl)
-    fossil_url = Efossils.Http.ephimeral(ctx, "#{baseurl}/#{fossil_baseurl}", String.ends_with?(url, "xfer"))
-    remote_url = fossil_url <> url
+    #fossil_url = Efossils.Http.ephimeral(ctx, "#{baseurl}/#{fossil_baseurl}", String.ends_with?(url, "xfer"))
+    #remote_url = fossil_url <> url
     method = case method do
                "GET" -> :get
                "POST" -> :post
@@ -179,7 +179,9 @@ defmodule Efossils.Command do
                                         "User-Agent": req_headers["user-agent"]])
                                         |> Keyword.put(:body, body)
                                         |> Keyword.put(:timeout, :infinity)
-    HTTPotion.request(method, remote_url, opts)
+
+    Efossils.Http.single_request(ctx, method, "#{baseurl}/#{fossil_baseurl}", url, [], body)
+    #HTTPotion.request(method, remote_url, opts)
   end
 
   @doc """

@@ -91,9 +91,18 @@ defmodule EfossilsWeb.Proxy.Router do
     opts = Pow.Plug.Session.init([])
     conn |> Pow.Plug.Session.call(opts)
   end
-  
+
+  defp first_get_req_header(conn, key) do
+    case get_req_header(conn, key) do
+      [val | _rest] ->
+        val
+      [] ->
+        nil
+    end
+  end
+
   defp put_user_from_basic_auth(conn) do
-    [credentials | _rest] = get_req_header(conn, "authorization")
+    credentials = first_get_req_header(conn, "authorization")
     case get_credentials_basic_auth(credentials) do
       {email, password} ->
         case Efossils.Repo.get_by(Efossils.User, email: email) do
@@ -199,6 +208,11 @@ defmodule EfossilsWeb.Proxy.Router do
 
     case Efossils.Command.request_http(rctx, credentials, fossil_base_url,
           conn.method, url, body, req_headers) do
+      {:ok, {body, headers, status_code}} ->
+        #Enum.reduce(headers, conn, fn {key, val}, conn ->
+        #  put_resp_header(conn, String.downcase(key), val)
+        #end)
+        conn |> send_resp(status_code, body)
       %HTTPotion.Response{:body => body, :headers => headers, :status_code => status_code} ->
         Enum.reduce(headers.hdrs, conn, fn {key, val}, conn ->
           put_resp_header(conn, String.downcase(key), val)
