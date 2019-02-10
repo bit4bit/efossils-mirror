@@ -27,7 +27,7 @@ defmodule EfossilsWeb.Router do
     plug :fetch_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    #plug :put_layout_from_session
+    plug :put_layout_from_session
   end
   
   pipeline :protected do
@@ -37,8 +37,8 @@ defmodule EfossilsWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug Pow.Plug.RequireAuthenticated,
-      error_handler: Pow.Phoenix.PlugErrorHandler
-    #plug :put_layout_from_session
+      error_handler: Pow.Phoenix.PlugErrorHandler 
+    plug :put_layout_from_session
   end
 
   pipeline :put_session do
@@ -93,9 +93,9 @@ defmodule EfossilsWeb.Router do
   
   defp put_layout_from_session(conn, _) do
     if conn.assigns[:current_user] do
-      Phoenix.Controller.put_layout(conn, {EfossilsWeb.LayoutView, :app})
+      Phoenix.Controller.put_layout(conn, {EfossilsWeb.Phoenix.LayoutView, :app})
     else
-      Phoenix.Controller.put_layout(conn, {EfossilsWeb.LayoutView, :page})
+      Phoenix.Controller.put_layout(conn, {EfossilsWeb.Phoenix.LayoutView, :page})
     end
   end
 

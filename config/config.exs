@@ -34,7 +34,8 @@ config :efossils, :pow,
   user: Efossils.User,
   extensions: [PowEmailConfirmation, PowResetPassword],
   controller_callbacks: Pow.Extension.Phoenix.ControllerCallbacks,
-  mailer_backend: EfossilsWeb.PowMailer
+  mailer_backend: EfossilsWeb.PowMailer,
+  web_module: EfossilsWeb
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

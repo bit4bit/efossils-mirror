@@ -95,7 +95,7 @@ defmodule EfossilsWeb.Proxy.Router do
   defp put_user_from_basic_auth(conn) do
     case get_credentials_basic_auth(Coherence.Authentication.Utils.get_first_req_header(conn,  "authorization")) do
       {email, password} ->
-        case Efossils.Repo.get_by(Efossils.Coherence.User, email: email) do
+        case Efossils.Repo.get_by(Efossils.User, email: email) do
           nil -> conn
           user ->
             if Efossils.Coherence.User.checkpw(password, user.password_hash) do
