@@ -27,30 +27,22 @@ defmodule Efossils.HttpSingleRequest do
   def init([ctx, method, baseurl, remote_url, headers, body]) do
     db_path = Keyword.get(ctx, :db_path)
     username =  Keyword.get(ctx, :default_username)
-    env = [{"HOME", Keyword.get(ctx, :work_path)},
-           {"FOSSIL_USER", username},
-           {"REMOTE_USER", username}]
+    env = [{'HOME', to_charlist(Keyword.get(ctx, :work_path))},
+           {'FOSSIL_USER', to_charlist(username)},
+           {'REMOTE_USER', to_charlist(username)}]
     args = ["http", "--nossl",
+            "-U", username,
             "--https",
-            "--localauth",
-            "--ipaddr", "127.0.0.1",
-            "--baseurl", "#{baseurl}/",
+            "--baseurl", "#{baseurl}",
             db_path]
-    IO.puts(username)
-    IO.puts(remote_url)
-    IO.puts(db_path)
-    IO.puts(baseurl)
-    IO.puts(method)
-    IO.puts(args)
     path = System.find_executable(Command.get_command)
-    port = Port.open({:spawn_executable, path}, [:binary, :eof, args: args])
-    smethod = case method do
-                :get -> "GET"
-                :post -> "POST"
-                :put -> "PUT"
-                :delete -> "DELETE"
-              end
-    Port.command(port, "#{smethod} #{remote_url}\n\n")
+    port = Port.open({:spawn_executable, path}, [:binary, :eof, args: args, env: env])
+    Port.command(port, "#{method} #{remote_url} HTTP/1.1\r\n")
+    Enum.each(headers, fn ({key, val}) ->
+      Port.command(port, "#{key}: #{val}\r\n")
+    end)
+    Port.command(port, "\r\n")
+    Port.command(port, body)
     {:ok, {port, nil, ""}}
   end
 
@@ -68,7 +60,7 @@ defmodule Efossils.HttpSingleRequest do
   defp decode_headers(data, headers) do
     case :erlang.decode_packet(:httph, data, []) do
       {:ok, {:http_header, _, key, _, value}, rest} ->
-        headers1 = headers ++ [{to_string(key), value}]
+        headers1 = headers ++ [{to_string(key), to_string(value)}]
         decode_headers(rest, headers1)
       {:ok, :http_eoh, _} ->
         headers

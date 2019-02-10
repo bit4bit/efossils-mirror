@@ -164,12 +164,12 @@ defmodule EfossilsWeb.Proxy.Router do
     current_user = conn.assigns[:current_user]
 
     {:ok, rctx} = Efossils.Accounts.context_repository(repository)
-    credentials = cond do
-      current_user == nil -> nil
+    {credentials, anonymous} = cond do
+      current_user == nil -> {nil, false}
       current_user.id == repository.owner_id ->
-        {current_user.lower_name, current_user.email}
+        {{current_user.lower_name, current_user.email}, false}
       Efossils.Accounts.is_user_collaborator_for_repository(current_user, repository) ->
-        {current_user.lower_name, current_user.email}
+        {{current_user.lower_name, current_user.email}, false}
       current_user.id != repository.owner_id ->
         #si usuario esta logeado en plataforma y no es colaborador
         #se le dan los permisos de usuario anonimo
@@ -178,9 +178,9 @@ defmodule EfossilsWeb.Proxy.Router do
           {:error, :user_not_exists} ->
             {:ok, rctx} = Efossils.Command.new_user(rctx, current_user.lower_name, current_user.id, current_user.email)
             {:ok, rctx} = Efossils.Command.capabilities_user(rctx, current_user.lower_name, caps_anonymous)
-            {current_user.lower_name, current_user.email}
+            {{current_user.lower_name, current_user.email}, true}
           {:ok, rctx} ->
-            {current_user.lower_name, current_user.email}
+            {{current_user.lower_name, current_user.email}, true}
         end
       true ->
         nil
@@ -201,7 +201,12 @@ defmodule EfossilsWeb.Proxy.Router do
            end
 
     rctx = case credentials do
-             nil -> rctx
+             nil ->
+               if anonymous do
+                 Efossils.Command.set_username(rctx, current_user.lower_name)
+               else
+                 Efossils.Command.set_username(rctx, "nobody")
+               end
              {username, _} ->
                Efossils.Command.set_username(rctx, username)
            end
@@ -209,10 +214,10 @@ defmodule EfossilsWeb.Proxy.Router do
     case Efossils.Command.request_http(rctx, credentials, fossil_base_url,
           conn.method, url, body, req_headers) do
       {:ok, {body, headers, status_code}} ->
-        #Enum.reduce(headers, conn, fn {key, val}, conn ->
-        #  put_resp_header(conn, String.downcase(key), val)
-        #end)
-        conn |> send_resp(status_code, body)
+        Enum.reduce(headers, conn, fn {key, val}, conn ->
+          put_resp_header(conn, String.downcase(key), val)
+        end)
+        |> send_resp(status_code, body)
       %HTTPotion.Response{:body => body, :headers => headers, :status_code => status_code} ->
         Enum.reduce(headers.hdrs, conn, fn {key, val}, conn ->
           put_resp_header(conn, String.downcase(key), val)

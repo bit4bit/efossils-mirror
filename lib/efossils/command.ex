@@ -158,30 +158,13 @@ defmodule Efossils.Command do
   @spec request_http(context(), {String.t, String.t}, String.t, String.t, String.t, Stream.t|map(), String.t):: {:ok, HTTPoison.Response.t} | {:error, HTTPoison.Error.t}
   def request_http(ctx, credentials, fossil_baseurl, method, url, body, req_headers) do
     baseurl = Application.get_env(:efossils, :fossil_base_url)
-    db_path = Keyword.get(ctx, :db_path)
-    opts = case credentials do
-             nil -> []
-             credentials ->
-               [basic_auth: credentials]
-           end
-    #fossil_url = get_fossil_url_from_pool(ctx, baseurl)
-    #fossil_url = Efossils.Http.ephimeral(ctx, "#{baseurl}/#{fossil_baseurl}", String.ends_with?(url, "xfer"))
-    #remote_url = fossil_url <> url
-    method = case method do
-               "GET" -> :get
-               "POST" -> :post
-               "PUT" -> :put
-               "DELETE" -> :delete
-             end
-    # HACK: reemplaza usuario por el logeado
-    username = Keyword.get(ctx, :default_username)
-    opts = Keyword.put(opts, :headers, ["Content-Type": req_headers["content-type"],
-                                        "User-Agent": req_headers["user-agent"]])
-                                        |> Keyword.put(:body, body)
-                                        |> Keyword.put(:timeout, :infinity)
-
-    Efossils.Http.single_request(ctx, method, "#{baseurl}/#{fossil_baseurl}", url, [], body)
-    #HTTPotion.request(method, remote_url, opts)
+    Efossils.Http.single_request(ctx, method, "#{baseurl}/#{fossil_baseurl}", url,
+      [
+        {"Content-Type", req_headers["content-type"]},
+        {"User-Agent", req_headers["user-agent"]},
+        {"Content-Length", :erlang.byte_size(body)}
+      ],
+      body)
   end
 
   @doc """
