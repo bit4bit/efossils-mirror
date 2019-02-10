@@ -29,7 +29,9 @@ config :efossils,
   fossil_base_url: System.get_env("EFOSSILS_FOSSIL_BASE_URL"),
   fossil_repositories_path: System.get_env("EFOSSILS_REPOSITORY_PATH"),
   fossil_work_path: System.get_env("EFOSSILS_WORK_PATH"),
-  fossil_user_admin: "efossils_admin"
+  fossil_user_admin: "efossils_admin",
+  email_from_name: System.get_env("EFOSSILS_EMAIL_FROM_NAME"),
+  email_from_email: System.get_env("EFOSSILS_EMAIL_FROM_EMAIL")
 
 # Do not print debug messages in production
 config :logger, level: :info
