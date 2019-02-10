@@ -409,6 +409,11 @@ defmodule Efossils.Accounts do
     Repo.all(User)
   end
 
+
+  def get_user_by_username!(name) do
+    Repo.get_by!(User, username: name)
+  end
+
   def get_user_by_name!(name) do
     Repo.get_by!(User, name: name)
   end
