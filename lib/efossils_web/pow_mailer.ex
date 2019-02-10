@@ -9,7 +9,7 @@ defmodule EfossilsWeb.PowMailer do
 
   def cast(email) do
     new()
-    |> from({@from_name, @frome_email})
+    |> from({@from_name, @from_email})
     |> to({email.user.name, email.user.email})
     |> subject(email.subject)
     |> text_body(email.text)
