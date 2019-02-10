@@ -22,7 +22,7 @@ defmodule EfossilsWeb.PageView do
   import EfossilsWeb.EfossilsHelper
   import Ecto.Query, warn: false
   alias Efossils.Accounts.Repository
-  alias Efossils.Coherence.User
+  alias Efossils.User
   alias Efossils.Repo
 
   def statistic_num_public_repositories do

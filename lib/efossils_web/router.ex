@@ -18,7 +18,8 @@
 
 defmodule EfossilsWeb.Router do
   use EfossilsWeb, :router
-  use Coherence.Router
+  use Pow.Phoenix.Router
+  use Pow.Extension.Phoenix.Router, otp_app: :efossils
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -26,7 +27,6 @@ defmodule EfossilsWeb.Router do
     plug :fetch_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug Coherence.Authentication.Session
     plug :put_layout_from_session
   end
   
@@ -36,7 +36,8 @@ defmodule EfossilsWeb.Router do
     plug :fetch_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug Coherence.Authentication.Session, protected: true  # Add this
+    plug Pow.Plug.RequireAuthenticated,
+      error_handler: Pow.Phoenix.PlugErrorHandler 
     plug :put_layout_from_session
   end
 
@@ -46,12 +47,14 @@ defmodule EfossilsWeb.Router do
   
   scope "/" do
     pipe_through :browser
-    coherence_routes()
+    pow_routes()
+    pow_extension_routes()
   end
   
   scope "/" do
     pipe_through :protected
-    coherence_routes :protected
+    pow_routes()
+    pow_extension_routes()
   end
 
   scope "/fossil", EfossilsWeb do
@@ -90,9 +93,9 @@ defmodule EfossilsWeb.Router do
   
   defp put_layout_from_session(conn, _) do
     if conn.assigns[:current_user] do
-      Phoenix.Controller.put_layout(conn, {EfossilsWeb.LayoutView, :app})
+      Phoenix.Controller.put_layout(conn, {EfossilsWeb.Phoenix.LayoutView, :app})
     else
-      Phoenix.Controller.put_layout(conn, {EfossilsWeb.LayoutView, :page})
+      Phoenix.Controller.put_layout(conn, {EfossilsWeb.Phoenix.LayoutView, :page})
     end
   end
 

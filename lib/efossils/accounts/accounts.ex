@@ -25,7 +25,7 @@ defmodule Efossils.Accounts do
   alias Efossils.Repo
 
   alias Efossils.Accounts.Repository
-  alias Efossils.Coherence.User
+  alias Efossils.User
 
   @doc """
   Inicializa gestión del repository por medio de `Efossils.Command`.
@@ -205,7 +205,7 @@ defmodule Efossils.Accounts do
     Repo.all(from c in Collaboration, where: c.repository_id == ^repository.id)
     |> Repo.preload([:user])
   end
-  def list_collaborations(%Efossils.Coherence.User{} = user) do
+  def list_collaborations(%Efossils.User{} = user) do
     Repo.all(from c in Collaboration, where: c.user_id == ^user.id)
     |> Repo.preload([:user])
   end

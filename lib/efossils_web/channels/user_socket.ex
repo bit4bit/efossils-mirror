@@ -38,9 +38,20 @@ defmodule EfossilsWeb.UserSocket do
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
   def connect(%{"token" => token}, socket) do
-    case Coherence.verify_user_token(socket, token, &assign/3) do
+    case verify_user_token(socket, token, &assign/3) do
       {:error, _} -> :error
       {:ok, socket} -> {:ok, socket}
+    end
+  end
+
+  @doc """
+  Verify a user token for channel authentication.
+  """
+  def verify_user_token(socket, token, assign_fun) do
+    result = Phoenix.Token.verify(socket, "user socket", token, max_age: 2 * 7 * 24 * 60 * 60)
+    case result do
+      {:ok, user_id} -> {:ok, assign_fun.(socket, :user_id, user_id)}
+      error -> error
     end
   end
 

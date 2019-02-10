@@ -19,7 +19,9 @@
 defmodule EfossilsWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :efossils
 
-  socket "/socket", EfossilsWeb.UserSocket
+  socket "/socket", EfossilsWeb.UserSocket,
+    websocket: true,
+    longpoll: false
 
   # Serve at "/" the static files from "priv/static" directory.
   #
@@ -54,6 +56,7 @@ defmodule EfossilsWeb.Endpoint do
     store: :cookie,
     key: "_efossils_key",
     signing_salt: "hBkTy4XT"
+  plug Pow.Plug.Session, otp_app: :efossils
 
   plug EfossilsWeb.Router
 

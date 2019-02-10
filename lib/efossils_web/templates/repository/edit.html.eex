@@ -87,6 +87,7 @@ Please type repository name for permanent delete for <b><%= @repository.name %>.
 <div class="field">
   <%= label f, :confirm_name %>
   <%= text_input f, :confirm_name, placeholder: "Repository Name..." %>
+  <%= error_tag f, :confirm_name %>
 </div>
 <%= submit gettext("Delete"), class: "ui red submit button" %>
 

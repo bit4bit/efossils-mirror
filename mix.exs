@@ -20,7 +20,7 @@ defmodule Efossils.Mixfile do
   def application do
     [
       mod: {Efossils.Application, []},
-      extra_applications: [:logger, :runtime_tools, :swoosh, :gen_smtp, :httpotion, :porcelain, :coherence,
+      extra_applications: [:logger, :runtime_tools, :swoosh, :gen_smtp, :httpotion, :porcelain,
                            :scrivener, :scrivener_ecto,:scrivener_html]
     ]
   end
@@ -34,25 +34,29 @@ defmodule Efossils.Mixfile do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.3.3"},
-      {:phoenix_pubsub, "~> 1.0"},
-      {:phoenix_ecto, "~> 3.2"},
+      {:phoenix, "~> 1.4.0"},
+      {:phoenix_pubsub, "~> 1.1"},
+      {:phoenix_ecto, "~> 4.0"},
+      {:ecto_sql, "~> 3.0"},
       {:postgrex, ">= 0.0.0"},
-      {:phoenix_html, "~> 2.10"},
-      {:phoenix_live_reload, "~> 1.0", only: :dev},
+      {:phoenix_html, "~> 2.11"},
+      {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:gettext, "~> 0.11"},
-      {:cowboy, "~> 1.0"},
+      {:plug_cowboy, "~> 2.0"},
       {:scrivener, "~> 2.0"},
-      {:scrivener_ecto, "~> 1.0"},
-      {:scrivener_html, "~> 1.7"},
+      {:scrivener_ecto, "~> 2.0"},
+      {:scrivener_html, "~> 1.8"},
       {:sizeable, "~> 1.0"},
-      {:plug, "1.6.0"},
-      {:coherence, "~> 0.5"},
       {:credo, "~> 0.9.1", only: [:dev, :test], runtime: false},
       {:porcelain, "~> 2.0"},
       {:httpotion, "~> 3.1.0"},
       {:distillery, "~> 1.5", runtime: false},
       {:gen_smtp, "~> 0.12.0"},
+      {:jason, "~> 1.0"},
+      {:ecto, "~> 3.0"},
+      {:swoosh, "~> 0.21"},
+      {:pow, "~> 1.0.1"},
+      {:comeonin, "~> 3.0"}
     ]
   end
 

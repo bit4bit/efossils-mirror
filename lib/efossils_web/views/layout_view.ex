@@ -19,3 +19,20 @@
 defmodule EfossilsWeb.LayoutView do
   use EfossilsWeb, :view
 end
+
+# Esto es requerido por 'pow' ya que sin esto
+# no permite usar los layouts
+defmodule EfossilsWeb.Phoenix.LayoutView do
+  use Phoenix.View, root: "lib/efossils_web/templates",
+    path: "layout",
+    namespace: EfossilsWeb
+  # Import convenience functions from controllers
+  import Phoenix.Controller, only: [get_flash: 2, view_module: 1]
+
+  # Use all HTML functionality (forms, tags, etc)
+  use Phoenix.HTML
+
+  import EfossilsWeb.Router.Helpers
+  import EfossilsWeb.ErrorHelpers
+  import EfossilsWeb.Gettext
+end
