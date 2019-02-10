@@ -11,66 +11,47 @@
 <div class="field">
   <%= label f, :name %>
   <%= text_input f, :name %>
-  <%= if message = f.errors[:name] do %>
-    <div class="ui red message"><%=  message |> elem(0) %></div>
-  <% end %>
+  <%= error_tag f, :name %>
 </div>
 
 <div class="field">
   <%= label f, :email %>
   <%= text_input f, :email %>
-  <%= if message = f.errors[:email] do %>
-    <div class="ui red message"><%=  message |> elem(0) %></div>
-  <% end %>
+  <%= error_tag f, :email %>
 </div>
 
 <div class="field">
   <%= label f, :location %>
   <%= text_input f, :location %>
-  <%= if message = f.errors[:location] do %>
-    <div class="ui red message"><%=  message |> elem(0) %></div>
-  <% end %>
+  <%= error_tag f, :location %>
 </div>
 
 
 <div class="field">
   <%= label f, :website %>
   <%= text_input f, :website %>
-  <%= if message = f.errors[:website] do %>
-    <div class="ui red message"><%=  message |> elem(0) %></div>
-  <% end %>
+  <%= error_tag f, :website %>
 </div>
 
 <div class="ui divider"></div>
 <div class="field">
   <%= label f, :current_password %>
   <%= password_input f, :current_password %>
-  <%= if message = f.errors[:current_password] do %>
-    <div class="ui red message">
   <%= error_tag f, :current_password %>
-    </div>
-  <% end %>
 </div>
 
 
 <div class="field">
   <%= label f, :password %>
   <%= password_input f, :password %>
-  <%= if message = f.errors[:password] do %>
-    <div class="ui red message">
   <%= error_tag f, :password %>
-    </div>
-  <% end %>
 </div>
 
 <div class="field">
   <%= label f, :confirm_password %>
   <%= password_input f, :confirm_password %>
-  <%= if message = f.errors[:confirm_password] do %>
-    <div class="ui red message">
   <%= error_tag f, :confirm_password %>
-    </div>
-  <% end %>
+
 </div>
 
 <%= submit gettext("Update"), class: "ui primary submit button" %>
