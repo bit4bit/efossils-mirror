@@ -393,7 +393,17 @@ defmodule Efossils.Command do
     end
   end
 
-    
+
+  @doc """
+  Reconstruct the named repository database from the core
+  """
+  def rebuild(ctx) do
+    db_path = Keyword.get(ctx, :db_path)
+    env = [{"HOME", Keyword.get(ctx, :work_path)}]
+    {out, _} = System.cmd(get_command, ["rebuild", "--stats", db_path], [stderr_to_stdout: true, env: env])
+    Mix.shell.info(out)
+  end
+
   defp blob_uncompress(ctx, nil) do
     blob_uncompress(ctx, "")
   end
