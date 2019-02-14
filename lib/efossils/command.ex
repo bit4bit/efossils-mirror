@@ -318,7 +318,10 @@ defmodule Efossils.Command do
     username = Keyword.get(opts, :username, "")
     password = Keyword.get(opts, :password, "")
 
-    base_repo = URI.encode_www_form(Path.basename(source_url))
+    base_repo = Base.encode16(
+      :erlang.md5(URI.encode_www_form(Path.basename(source_url)))
+    )
+
     source_url = if username != "" and password != "" do
       userinfo = URI.encode_www_form(username) <> ":" <> URI.encode_www_form(password)
       %{URI.parse(source_url) | userinfo: userinfo}
@@ -329,9 +332,11 @@ defmodule Efossils.Command do
 
     env = [{"GIT_TERMINAL_PROMPT", "0"}]
     source_path = Path.join(System.tmp_dir!, base_repo)
-    File.rm_rf(source_path)
     dest_tmp_path = Path.join(System.tmp_dir!, base_repo <> ".fossil")
     args = ["3m", "git", "clone", source_url, source_path]
+    File.rm_rf(source_path)
+    File.rm(dest_tmp_path)
+
     case System.cmd("timeout", args, [stderr_to_stdout: true, env: env]) do
       {_, 0} ->
         cmd_import = ~c(git -C #{String.to_charlist(source_path)} fast-export --all |) ++
@@ -365,8 +370,11 @@ defmodule Efossils.Command do
   defp do_migrate_repository(:fossil, source_url, opts) do
     username = Keyword.get(opts, :username, "")
     password = Keyword.get(opts, :password, "")
-    base_repo = URI.encode_www_form(Path.basename(source_url))
+    base_repo = Base.encode16(
+      :erlang.md5(URI.encode_www_form(Path.basename(source_url)))
+    )
     dest_tmp_path = Path.join(System.tmp_dir!, base_repo <> ".fossil")
+    File.rm(dest_tmp_path)
 
     eusername = URI.encode_www_form(username)
     epassword = URI.encode_www_form(password)
