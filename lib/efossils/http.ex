@@ -28,6 +28,7 @@ defmodule Efossils.HttpSingleRequest do
     db_path = Keyword.get(ctx, :db_path)
     username =  Keyword.get(ctx, :default_username)
     env = [{'HOME', to_charlist(Keyword.get(ctx, :work_path))},
+           {'SSH_CONNECTION', ''},
            {'FOSSIL_USER', to_charlist(username)},
            {'REMOTE_USER', to_charlist(username)}]
     args = ["http", "--nossl",
