@@ -19,7 +19,7 @@
 -->
 <div class="ui borderless menu">
   <div class="ui left item ">
-          Efossils v0.0.1 -- AGPL 3+ <a href="https://chiselapp.com/user/bit4bit/repository/efossils">Get this source</a>
+          Efossils v<%= Keyword.get(Mix.Project.config, :version) %> -- AGPL 3+ <a href="https://chiselapp.com/user/bit4bit/repository/efossils">Get this source</a>
   </div>
   <div class="ui right item links">
     
