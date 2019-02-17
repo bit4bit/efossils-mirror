@@ -46,10 +46,12 @@ defmodule EfossilsWeb.RepositoryController do
     |> Accounts.Repository.prepare_attrs
 
     login_username = conn.assigns[:current_user].nickname
-    
+
     result = with {:ok, repository} <- Accounts.create_repository(repository_params),
-                  {:ok, ctx} <- Accounts.context_repository(repository,
-                    default_username: login_username),
+                  {:ok, ctx} <- Accounts.context_repository(repository),
+                  {:ok, ctx} <- Efossils.Command.new_user(ctx, login_username,
+                    EfossilsWeb.Utils.public_id(conn.assigns[:current_user]),
+                    conn.assigns[:current_user].email),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "project-name", repository.name),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "project-description", repository.description),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "short-project-name", repository.nickname),
@@ -142,12 +144,14 @@ defmodule EfossilsWeb.RepositoryController do
                   fossil_username: collaborator.email,
                   fossil_password: collaborator.email,
                  }
+
+        login_username = EfossilsWeb.Utils.public_id(collaborator.nickname)
         case Accounts.create_collaboration(attrs) do
           {:ok, _}  ->
             {:ok, ctx} = Accounts.context_repository(repository)
-            {:ok, _} = Efossils.Command.new_user(ctx, collaborator.nickname, collaborator.id, collaborator.email)
-            {:ok, _} = Efossils.Command.capabilities_user(ctx, collaborator.nickname, @default_capabilities_collaborator)
-            {:ok, _} = Efossils.Command.Collaborative.append_assigned_to(ctx, collaborator.nickname)
+            {:ok, _} = Efossils.Command.new_user(ctx, login_username, collaborator.id, collaborator.email)
+            {:ok, _} = Efossils.Command.capabilities_user(ctx, login_username, @default_capabilities_collaborator)
+            {:ok, _} = Efossils.Command.Collaborative.append_assigned_to(ctx, login_username)
             
             collaborations = Accounts.list_collaborations(repository)
             conn
@@ -189,7 +193,7 @@ defmodule EfossilsWeb.RepositoryController do
     repository_params = repository_params
     |> Map.put("owner_id", conn.assigns[:current_user].id)
     |> Accounts.Repository.prepare_attrs
-    login_username = conn.assigns[:current_user].nickname
+    login_username = EfossilsWeb.Utils.public_id(conn.assigns[:current_user])
 
     source = repository_params["source"]
     source_url = repository_params["source_url"]
@@ -197,7 +201,8 @@ defmodule EfossilsWeb.RepositoryController do
     source_password = Map.get(repository_params, "source_password", nil)
     changeset =  %Accounts.Repository{}
     |> Accounts.Repository.changeset(repository_params)
-    
+
+
     result = with {:ok, migrate_path} <- Efossils.Command.migrate_repository(repository_params["source"],
                        repository_params["source_url"], [username: source_username,
                                                          password: source_password]),

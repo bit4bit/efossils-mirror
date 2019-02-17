@@ -18,8 +18,20 @@
 
 defmodule EfossilsWeb.Utils do
   @moduledoc false
+  alias Efossils.User
+  alias Efossils.Accounts.Collaboration
+
+  defdelegate fossil_path(rest, user, repo), to: Efossils.Utils
+
+  def public_id(%User{nickname: nickname}) do
+    "#{base_url()}/users/#{nickname}"
+  end
   
-  def fossil_path(rest, user, repo) do
-    "/fossil/user/#{user.nickname}/repository/#{repo.nickname}/#{rest}"
+  def public_id(%Collaboration{user: user}) do
+    "#{base_url()}/users/#{user.nickname}"
+  end
+
+  def base_url do
+    EfossilsWeb.Endpoint.url()
   end
 end

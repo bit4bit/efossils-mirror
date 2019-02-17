@@ -19,6 +19,10 @@
 defmodule Efossils.Utils do
   @moduledoc false
   
+  def fossil_path(rest, user, repo) do
+    "/fossil/user/#{user.nickname}/repository/#{repo.nickname}/#{rest}"
+  end
+
   def build_nickname(changeset) do
     if username = Ecto.Changeset.get_change(changeset, :username) do
       Ecto.Changeset.put_change(changeset, :nickname, sanitize_name(username))

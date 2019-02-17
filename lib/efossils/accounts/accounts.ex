@@ -90,7 +90,7 @@ defmodule Efossils.Accounts do
   """
   def get_repository!(id), do: Repo.get!(Repository, id) |> Repo.preload([:base_repository, :owner])
   def get_repository_by_name!(name) do
-    Repo.get_by!(Repository, lower_name: name)
+    Repo.get_by!(Repository, nickname: name)
     |> Repo.preload([:base_repository, :owner])
   end
   def get_repository!(owner, id) do
