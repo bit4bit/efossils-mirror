@@ -15,8 +15,8 @@
 <% end %>
 
 <div class="field">
-  <label>Username</label>
-  <input type="text" value="<%= @current_user.nickname %>" readonly="readonly"></input>
+  <label for="nickname">Nickname</label>
+  <input name="nickname" type="text" value="<%= @current_user.nickname %>" readonly="readonly"></input>
 </div>
 
 <div class="field">
