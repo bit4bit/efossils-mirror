@@ -29,7 +29,16 @@ defmodule EfossilsWeb.Router do
     plug :put_secure_browser_headers
     plug :put_layout_from_session
   end
-  
+
+  pipeline :api do
+    plug :accepts, ["json"]
+  end
+
+  pipeline :api_signed do
+    plug :accepts, ["json"]
+    plug EfossilsWeb.ActivityPub.HTTPSignature
+  end
+
   pipeline :protected do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -64,9 +73,21 @@ defmodule EfossilsWeb.Router do
   
   scope "/", EfossilsWeb do
     pipe_through :browser # Use the default browser stack
-    
+
     get "/", PageController, :index
     get "/explore/repositories", ExploreRepositoriesController, :index
+  end
+
+  scope "/", EfossilsWeb do
+    pipe_through :api
+
+    get "/instance", ActivityPubController, :who
+    get "/.well-known/webfinger", ActivityPubController, :webfinger
+  end
+
+  scope "/", EfossilsWeb do
+    pipe_through :api_signed
+    post "/inbox", ActivityPubController, :send_inbox
   end
 
   scope "/", EfossilsWeb do

@@ -31,6 +31,15 @@ defmodule EfossilsWeb.Utils do
     "#{base_url()}/users/#{user.nickname}"
   end
 
+  def public_id(:instance) do
+    "#{base_url()}/instance"
+  end
+
+  def inbox_url(:instance) do
+    "#{base_url()}/inbox"
+  end
+
+
   def base_url do
     EfossilsWeb.Endpoint.url()
   end

@@ -18,7 +18,9 @@
 
 defmodule Efossils.Utils do
   @moduledoc false
-  
+
+  @federated_name Application.get_env(:efossils, :federated_name)
+
   def fossil_path(rest, user, repo) do
     "/fossil/user/#{user.nickname}/repository/#{repo.nickname}/#{rest}"
   end
@@ -35,4 +37,31 @@ defmodule Efossils.Utils do
     r1 = Regex.replace(~r/[^\w\d.-@]/, name, "_")
     Regex.replace(~r/\.{2,}/, r1, ".")
   end
+
+  def federated_name do
+    @federated_name
+  end
+
+  def raw_public_key do
+    public_key = Application.get_env(:efossils, :federated_public_key)
+    case public_key do
+      nil -> {:error, :enoent}
+      public_key ->
+        File.read(public_key)
+    end
+  end
+
+  def public_key do
+    case raw_public_key() do
+      {:ok, content} ->
+        case :public_key.pem_decode(content) do
+          [] -> {:error, :invalid}
+          [pkey] -> :public_key.pem_entry_decode(pkey)
+        end
+      error ->
+        error
+    end
+  end
+
+
 end

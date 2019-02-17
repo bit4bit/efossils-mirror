@@ -9,6 +9,8 @@ use Mix.Config
 config :efossils,
   ecto_repos: [Efossils.Repo],
   federated_name: "Efossils",
+  federated_public_key: System.get_env("EFOSSILS_FEDERATED_PUBLIC_PEM"),
+  federated_private_key: System.get_env("EFOSSILS_FEDERATED_PRIVATE_PEM"),
   fossil_bin: "fossil",
   fossil_base_url: "http://localhost:4000",
   fossil_repositories_path: "data/repositories",
@@ -44,4 +46,3 @@ import_config "#{Mix.env}.exs"
 config :scrivener_html,
   routes_helper: EfossilsWeb.Router.Helpers,
   view_style: :semantic
-

@@ -281,3 +281,87 @@ defmodule EfossilsWeb.Proxy.Parser do
     {:next, conn}
   end
 end
+
+defmodule EfossilsWeb.ActivityPub.HTTPSignature do
+  @moduledoc false
+  
+  import Plug.Conn
+  
+  def init(opts), do: opts
+  def call(conn, opts) do
+    conn
+    |> get_signature
+    |> parse_signature
+    |> get_public_key
+    |> validate_signature
+  end
+
+  defp get_signature(conn) do
+    case get_req_header(conn, "signature") do
+      [] ->
+        conn
+        |> send_resp(403, "Forbidden")
+        |> halt
+      [content] ->
+        {conn, content}
+    end
+  end
+  def parse_signature({conn, content}) do
+    {conn,
+     content
+     |> String.split(",")
+     |> Enum.map(&(String.split(&1, "=", parts: 2)))
+     |> Enum.map(fn [key, val] ->
+       {key, String.trim(val, "\"")}
+     end)
+     |> Map.new
+     }
+  end
+  def parse_signature(conn), do: conn
+
+  def get_public_key({conn, %{"keyId" => keyId} = ctx}) do
+    decoder = Phoenix.json_library
+    case HTTPotion.get(keyId, headers: [Accept: "application/json"]) do
+      %HTTPotion.Response{status_code: 200, body: body} = resp ->
+        {:ok, document} = decoder.decode(body)
+        {conn, Map.put(ctx, "publicKeyPem", document["publicKey"]["publicKeyPem"])}
+      _ ->
+        conn
+        |> send_resp(403, "Forbidden")
+        |> halt
+    end
+  end
+  def get_public_key(conn), do: conn
+
+  def validate_signature({conn, %{"publicKeyPem" => pem, "headers" => headers, "signature" => esignature} = ctx}) do
+    algorithm = Map.get(ctx, "algorithm", "SHA-256")
+
+    digest_type = case algorithm do
+                    "SHA-256" -> :sha256
+                  end
+    
+    {:ok, signature} = Base.decode64(esignature)
+
+    expected = String.split(headers)
+    |> Enum.map(fn header ->
+      case header do
+        "(request-target)" ->
+          "(request-target): #{String.downcase(conn.method)} #{conn.request_path}"
+        header ->
+          [val] = get_req_header(conn, header)
+          "#{header}: #{val}"
+      end
+    end)
+    |> Enum.join("\n")
+
+    if not :public_key.verify(expected, digest_type, signature, Efossils.Utils.public_key) do
+      conn
+      |> send_resp(401, "Request signature could not be verified")
+      |> halt
+    else
+      conn
+    end
+  end
+  def validate_signature(conn), do: send_resp(conn, 401, "Request signature could not be verified") |> halt
+
+end
