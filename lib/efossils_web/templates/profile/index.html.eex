@@ -16,7 +16,7 @@
 
 <div class="field">
   <label>Username</label>
-  <input type="text" value="<%= @current_user.lower_name %>" readonly="readonly"></input>
+  <input type="text" value="<%= @current_user.nickname %>" readonly="readonly"></input>
 </div>
 
 <div class="field">

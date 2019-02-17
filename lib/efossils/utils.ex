@@ -19,9 +19,9 @@
 defmodule Efossils.Utils do
   @moduledoc false
   
-  def build_lower_name(changeset) do
+  def build_nickname(changeset) do
     if username = Ecto.Changeset.get_change(changeset, :username) do
-      Ecto.Changeset.put_change(changeset, :lower_name, sanitize_name(username))
+      Ecto.Changeset.put_change(changeset, :nickname, sanitize_name(username))
     else
       changeset
     end

@@ -14,7 +14,7 @@ Efossils.Repo.delete_all Efossils.User
 
 Efossils.User.changeset(%Efossils.User{}, %{name: "Efossils user",
                                             username: "efossils_main",
-                                            lower_name: "efossils_main",
+                                            nickname: "efossils_main",
                                             email: "efossils@local.local",
                                             password: "efossilslocalhost",
                                             confirm_password: "efossilslocalhost"})
@@ -23,7 +23,7 @@ Efossils.User.changeset(%Efossils.User{}, %{name: "Efossils user",
 
 Efossils.User.changeset(%Efossils.User{}, %{name: "Efossils Collaborator",
                                             username: "efossils_collaborator",
-                                            lower_name: "efossils_collaborator",
+                                            nickname: "efossils_collaborator",
                                             email: "efossilscollaborator@local.local",
                                             password: "efossilslocalhost",
                                             confirm_password: "efossilslocalhost"})

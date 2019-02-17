@@ -31,7 +31,7 @@ defmodule Efossils.User do
 
     field :username, :string
     # username saneado
-    field :lower_name, :string
+    field :nickname, :string
     field :keep_email_private, :boolean
     field :location, :string
     field :website, :string
@@ -55,9 +55,9 @@ defmodule Efossils.User do
 
   def changeset_profile(model, params \\ %{}) do
     model
-    |> cast(params, [:name, :lower_name, :email, :keep_email_private, :location, :website, :avatar_email, :avatar, :use_custom_avatar, :password, :confirm_password])
-    |> Efossils.Utils.build_lower_name()
-    |> validate_required([:lower_name, :name, :email])
+    |> cast(params, [:name, :nickname, :email, :keep_email_private, :location, :website, :avatar_email, :avatar, :use_custom_avatar, :password, :confirm_password])
+    |> Efossils.Utils.build_nickname()
+    |> validate_required([:nickname, :name, :email])
     |> validate_format(:email, ~r/@/)
     |> unique_constraint(:email)
     |> pow_changeset(params)
@@ -67,7 +67,7 @@ defmodule Efossils.User do
   def changeset(model, params \\ %{}) do
     model
     |> cast(params, [:name, :username, :email, :keep_email_private, :location, :website, :max_repo_creation, :prohibit_login, :avatar_email, :avatar, :use_custom_avatar, :num_repos, :num_stars])
-    |> Efossils.Utils.build_lower_name()
+    |> Efossils.Utils.build_nickname()
     |> put_name()
     |> validate_required([:username, :email])
     |> validate_format(:email, ~r/@/)

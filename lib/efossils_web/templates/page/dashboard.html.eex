@@ -37,7 +37,7 @@
             <%= if repository.is_private do %>
               <i class="octicon octicon-key"></i>
             <% end %>
-            <%= repository.lower_name %>
+            <%= repository.nickname %>
           </div>
 
           <div class="description">

@@ -189,7 +189,7 @@ defmodule Efossils.Accounts.Repository do
   schema "repositories" do
     field :description, :string
     field :is_private, :boolean, default: false
-    field :lower_name, :string
+    field :nickname, :string
     field :name, :string
     field :num_forks, :integer
     field :num_stars, :integer
@@ -208,8 +208,8 @@ defmodule Efossils.Accounts.Repository do
   @doc false
   def changeset(repository, attrs) do
     repository
-    |> cast(attrs, [:lower_name, :name, :description, :website, :num_watchers, :num_stars, :num_forks, :is_private, :size, :license, :owner_id, :fossil_extras])
-    |> Efossils.Utils.build_lower_name()
+    |> cast(attrs, [:nickname, :name, :description, :website, :num_watchers, :num_stars, :num_forks, :is_private, :size, :license, :owner_id, :fossil_extras])
+    |> Efossils.Utils.build_nickname()
     |> cast_assoc(:owner)
     |> cast_assoc(:base_repository)
     |> validate_required([:name, :is_private])
@@ -219,7 +219,7 @@ defmodule Efossils.Accounts.Repository do
   @doc false
   def prepare_attrs(attrs) do
     attrs
-    |> Map.put("lower_name", Efossils.Utils.sanitize_name(attrs["name"]))
+    |> Map.put("nickname", Efossils.Utils.sanitize_name(attrs["name"]))
   end
 
   @doc false

@@ -65,7 +65,7 @@ Please type username.
       <div class="item">
         <i class="left floated octicon octicon-person"></i>
         <div class="right content">
-          <%= colab.user.lower_name %>
+          <%= colab.user.nickname %>
           <%= link "X", to: repository_collaboration_path(@conn, :collaboration_delete, @repository, colab.user.id), method: :delete %>
         </div>
       </div>

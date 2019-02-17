@@ -107,7 +107,7 @@ defmodule EfossilsWeb.Proxy.Router do
       {email, password} ->
         user = case Efossils.Repo.get_by(Efossils.User, email: email) do
                  nil -> 
-                   Efossils.Repo.get_by(Efossils.User, lower_name: email)
+                   Efossils.Repo.get_by(Efossils.User, nickname: email)
                  user ->
                    user
                end
@@ -173,20 +173,20 @@ defmodule EfossilsWeb.Proxy.Router do
     {credentials, anonymous} = cond do
       current_user == nil -> {nil, false}
       current_user.id == repository.owner_id ->
-        {{current_user.lower_name, current_user.email}, false}
+        {{current_user.nickname, current_user.email}, false}
       Efossils.Accounts.is_user_collaborator_for_repository(current_user, repository) ->
-        {{current_user.lower_name, current_user.email}, false}
+        {{current_user.nickname, current_user.email}, false}
       current_user.id != repository.owner_id ->
         #si usuario esta logeado en plataforma y no es colaborador
         #se le dan los permisos de usuario anonimo
         caps_anonymous = "hmnc"
-        case Efossils.Command.capabilities_user(rctx, current_user.lower_name, caps_anonymous) do
+        case Efossils.Command.capabilities_user(rctx, current_user.nickname, caps_anonymous) do
           {:error, :user_not_exists} ->
-            {:ok, rctx} = Efossils.Command.new_user(rctx, current_user.lower_name, current_user.id, current_user.email)
-            {:ok, rctx} = Efossils.Command.capabilities_user(rctx, current_user.lower_name, caps_anonymous)
-            {{current_user.lower_name, current_user.email}, true}
+            {:ok, rctx} = Efossils.Command.new_user(rctx, current_user.nickname, current_user.id, current_user.email)
+            {:ok, rctx} = Efossils.Command.capabilities_user(rctx, current_user.nickname, caps_anonymous)
+            {{current_user.nickname, current_user.email}, true}
           {:ok, rctx} ->
-            {{current_user.lower_name, current_user.email}, true}
+            {{current_user.nickname, current_user.email}, true}
         end
       true ->
         nil
@@ -209,7 +209,7 @@ defmodule EfossilsWeb.Proxy.Router do
     rctx = case credentials do
              nil ->
                if anonymous do
-                 Efossils.Command.set_username(rctx, current_user.lower_name)
+                 Efossils.Command.set_username(rctx, current_user.nickname)
                else
                  Efossils.Command.set_username(rctx, "nobody")
                end

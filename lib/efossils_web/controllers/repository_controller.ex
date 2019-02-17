@@ -45,14 +45,14 @@ defmodule EfossilsWeb.RepositoryController do
     |> Map.put("owner_id", conn.assigns[:current_user].id)
     |> Accounts.Repository.prepare_attrs
 
-    login_username = conn.assigns[:current_user].lower_name
+    login_username = conn.assigns[:current_user].nickname
     
     result = with {:ok, repository} <- Accounts.create_repository(repository_params),
                   {:ok, ctx} <- Accounts.context_repository(repository,
                     default_username: login_username),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "project-name", repository.name),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "project-description", repository.description),
-                  {:ok, _} <- Efossils.Command.force_setting(ctx, "short-project-name", repository.lower_name),
+                  {:ok, _} <- Efossils.Command.force_setting(ctx, "short-project-name", repository.nickname),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "search-doc", "1"),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "search-tkt", "1"),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "search-wiki", "1"),
@@ -145,9 +145,9 @@ defmodule EfossilsWeb.RepositoryController do
         case Accounts.create_collaboration(attrs) do
           {:ok, _}  ->
             {:ok, ctx} = Accounts.context_repository(repository)
-            {:ok, _} = Efossils.Command.new_user(ctx, collaborator.lower_name, collaborator.id, collaborator.email)
-            {:ok, _} = Efossils.Command.capabilities_user(ctx, collaborator.lower_name, @default_capabilities_collaborator)
-            {:ok, _} = Efossils.Command.Collaborative.append_assigned_to(ctx, collaborator.lower_name)
+            {:ok, _} = Efossils.Command.new_user(ctx, collaborator.nickname, collaborator.id, collaborator.email)
+            {:ok, _} = Efossils.Command.capabilities_user(ctx, collaborator.nickname, @default_capabilities_collaborator)
+            {:ok, _} = Efossils.Command.Collaborative.append_assigned_to(ctx, collaborator.nickname)
             
             collaborations = Accounts.list_collaborations(repository)
             conn
@@ -169,7 +169,7 @@ defmodule EfossilsWeb.RepositoryController do
     collaborations = Accounts.list_collaborations(repository)
     
     {:ok, ctx} = Accounts.context_repository(repository)
-    Efossils.Command.Collaborative.remove_assigned_to(ctx, collaboration.user.lower_name)
+    Efossils.Command.Collaborative.remove_assigned_to(ctx, collaboration.user.nickname)
     
     render(conn, "edit.html", repository: repository, changeset: changeset, collaborations: collaborations)
   end
@@ -189,7 +189,7 @@ defmodule EfossilsWeb.RepositoryController do
     repository_params = repository_params
     |> Map.put("owner_id", conn.assigns[:current_user].id)
     |> Accounts.Repository.prepare_attrs
-    login_username = conn.assigns[:current_user].lower_name
+    login_username = conn.assigns[:current_user].nickname
 
     source = repository_params["source"]
     source_url = repository_params["source_url"]
@@ -206,7 +206,7 @@ defmodule EfossilsWeb.RepositoryController do
                     default_username: login_username),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "project-name", repository.name),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "project-description", repository.description),
-                  {:ok, _} <- Efossils.Command.force_setting(ctx, "short-project-name", repository.lower_name),
+                  {:ok, _} <- Efossils.Command.force_setting(ctx, "short-project-name", repository.nickname),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "search-doc", "1"),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "search-tkt", "1"),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "search-wiki", "1"),
