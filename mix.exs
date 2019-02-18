@@ -21,7 +21,7 @@ defmodule Efossils.Mixfile do
     [
       mod: {Efossils.Application, []},
       extra_applications: [:logger, :runtime_tools, :swoosh, :gen_smtp, :httpotion, :porcelain,
-                           :scrivener, :scrivener_ecto,:scrivener_html]
+                           :scrivener, :scrivener_ecto,:scrivener_html, :timex]
     ]
   end
 
@@ -57,7 +57,8 @@ defmodule Efossils.Mixfile do
       {:poison, "~> 3.1"},
       {:swoosh, "~> 0.21"},
       {:pow, "~> 1.0.1"},
-      {:comeonin, "~> 3.0"}
+      {:comeonin, "~> 3.0"},
+      {:timex, "~> 3.1"}
     ]
   end
 

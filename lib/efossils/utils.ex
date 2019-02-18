@@ -63,5 +63,33 @@ defmodule Efossils.Utils do
     end
   end
 
+  def private_key do
+    private_key = Application.get_env(:efossils, :federated_private_key)
+    case private_key do
+      nil -> {:error, :enoent}
+      private_key ->
+        with {:ok, content} <- File.read(private_key) do
+          case :public_key.pem_decode(content) do
+            [] -> {:error, :invalid}
+            [pkey] -> {:ok, :public_key.pem_entry_decode(pkey)}
+          end
+        end
+    end
+  end
 
+  def sign(msg) do
+    {:ok, key} = private_key()
+    :public_key.sign(msg, :sha256, key)
+  end
+
+  def sign_and_encode(msg) do
+     Base.encode64(sign(msg))
+  end
+
+  def cast(struct_, vals, keys) do
+    Enum.reduce(keys, struct_,
+      fn key, struct_ ->
+        Map.put(struct_, key, Map.get(vals, Atom.to_string(key)))
+      end)
+  end
 end

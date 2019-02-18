@@ -35,8 +35,10 @@ defmodule EfossilsWeb.Router do
   end
 
   pipeline :api_signed do
-    plug :accepts, ["json"]
+    plug :accepts, ["json"] 
     plug EfossilsWeb.ActivityPub.HTTPSignature
+    plug Plug.Parsers, parsers: [:json],
+      json_decoder: Phoenix.json_library
   end
 
   pipeline :protected do

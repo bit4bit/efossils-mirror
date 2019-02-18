@@ -354,7 +354,9 @@ defmodule EfossilsWeb.ActivityPub.HTTPSignature do
     end)
     |> Enum.join("\n")
 
-    if not :public_key.verify(expected, digest_type, signature, Efossils.Utils.public_key) do
+    [rkey]  = :public_key.pem_decode(pem)
+    key = :public_key.pem_entry_decode(rkey)
+    if not :public_key.verify(expected, digest_type, signature, key) do
       conn
       |> send_resp(401, "Request signature could not be verified")
       |> halt

@@ -34,6 +34,7 @@ defmodule Efossils.Application do
       supervisor(EfossilsWeb.Endpoint, []),
       # Start your own worker by calling: Efossils.Worker.start_link(arg1, arg2, arg3)
       # worker(Efossils.Worker, [arg1, arg2, arg3]),
+      worker(Efossils.ActivityPub.Notificator, []),
       worker(Efossils.Http, []),
     ]
 

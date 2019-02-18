@@ -20,6 +20,8 @@ defmodule EfossilsWeb.Utils do
   @moduledoc false
   alias Efossils.User
   alias Efossils.Accounts.Collaboration
+  alias Efossils.ActivityPub
+  alias Efossils.ActivityStreams
 
   defdelegate fossil_path(rest, user, repo), to: Efossils.Utils
 
@@ -39,8 +41,96 @@ defmodule EfossilsWeb.Utils do
     "#{base_url()}/inbox"
   end
 
-
   def base_url do
     EfossilsWeb.Endpoint.url()
+  end
+
+  def host do
+    uri = URI.parse(base_url)
+    "#{uri.host}:#{uri.port}"
+  end
+
+  defp request_headers(url) do
+    uri = URI.parse(url)
+
+    date = Timex.now |> Timex.format!("{RFC1123}")
+    signature = [{"(request-target)", "post #{uri.path}"},
+                  {"host", host()},
+                  {"date", date}]
+                  |> Enum.map_join("\n", fn {k,v} -> "#{k}: #{v}" end)
+                  |> Efossils.Utils.sign_and_encode
+
+    %{"Signature" => "keyId=\"#{public_id(:instance)}\",headers=\"(request-target) host date\",signature=\"#{signature}\"",
+      "Date" => date,
+      "Content-Type" => "application/json"}
+  end
+
+  def get(url) do
+    headers = request_headers(url)
+    decoder = Phoenix.json_library
+    case HTTPotion.get(url, [headers: headers]) do
+      %HTTPotion.Response{body: body, status_code: 200} ->
+        decoder.decode(body)
+      %HTTPotion.ErrorResponse{message: message} ->
+        {:error, message}
+      %HTTPotion.Response{body: body, status_code: status_code} ->
+        {:error, status_code}
+    end
+  end
+
+  def post(url, content) when is_map(content) do
+    headers = request_headers(url)
+    {:ok, body} = Phoenix.json_library.encode(Map.put(content, "@context", "https://www.w3.org/ns/activitystreams"))
+    case HTTPotion.post(url, [body: body, headers: headers]) do
+      %HTTPotion.Response{body: body, status_code: 200} ->
+        {:ok, body}
+      %HTTPotion.ErrorResponse{message: message} ->
+        {:error, message}
+      %HTTPotion.Response{body: body, status_code: status_code} ->
+        {:error, status_code}
+    end
+  end
+
+  def post_activiy(url, content) when is_map(content) do
+    headers = request_headers(url)
+    |> Map.put("Content-Type", "application/activity+json")
+
+    {:ok, body} = Phoenix.json_library.encode(Map.put(content, "@context", "https://www.w3.org/ns/activitystreams"))
+    case HTTPotion.post(url, [body: body, headers: headers]) do
+      %HTTPotion.Response{body: body, status_code: 200} ->
+        {:ok, body}
+      %HTTPotion.ErrorResponse{message: message} ->
+        {:error, message}
+      %HTTPotion.Response{body: body, status_code: status_code} ->
+        {:error, status_code}
+    end
+  end
+
+  def actor_self do
+    %Efossils.ActivityPub.Vocabulary.Actor{
+      type: "Application",
+      id: EfossilsWeb.Utils.public_id(:instance),
+      name: Efossils.Utils.federated_name(),
+      inbox: EfossilsWeb.Utils.inbox_url(:instance)
+    }
+  end
+
+  def object_self do
+    %ActivityStreams.Vocabulary.Object{
+      type: "Application",
+      id: EfossilsWeb.Utils.public_id(:instance),
+      name: Efossils.Utils.federated_name(),
+    }
+  end
+
+  def ap_follow(ap_id) do
+    object = ActivityPub.Vocabulary.Actor.cast(ap_id)
+    inbox_url = ActivityPub.Vocabulary.Actor.first_inbox(object)
+    document = %ActivityStreams.Vocabulary.Follow{
+      actor: actor_self,
+      object: object
+    }
+    |> ActivityStreams.render
+    post_activiy(inbox_url, document)
   end
 end
