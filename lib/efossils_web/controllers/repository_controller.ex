@@ -145,11 +145,12 @@ defmodule EfossilsWeb.RepositoryController do
                   fossil_password: collaborator.email,
                  }
 
-        login_username = EfossilsWeb.Utils.public_id(collaborator.nickname)
+        login_username = collaborator.nickname
         case Accounts.create_collaboration(attrs) do
           {:ok, _}  ->
             {:ok, ctx} = Accounts.context_repository(repository)
-            {:ok, _} = Efossils.Command.new_user(ctx, login_username, collaborator.id, collaborator.email)
+            {:ok, _} = Efossils.Command.new_user(ctx, login_username,
+              EfossilsWeb.Utils.public_id(collaborator), collaborator.email)
             {:ok, _} = Efossils.Command.capabilities_user(ctx, login_username, @default_capabilities_collaborator)
             {:ok, _} = Efossils.Command.Collaborative.append_assigned_to(ctx, login_username)
             
@@ -193,7 +194,7 @@ defmodule EfossilsWeb.RepositoryController do
     repository_params = repository_params
     |> Map.put("owner_id", conn.assigns[:current_user].id)
     |> Accounts.Repository.prepare_attrs
-    login_username = EfossilsWeb.Utils.public_id(conn.assigns[:current_user])
+    login_username = conn.assigns[:current_user].nickname
 
     source = repository_params["source"]
     source_url = repository_params["source_url"]
@@ -207,8 +208,7 @@ defmodule EfossilsWeb.RepositoryController do
                        repository_params["source_url"], [username: source_username,
                                                          password: source_password]),
                   {:ok, repository} <- Efossils.Repo.insert(changeset),
-                  {:ok, ctx} <- Accounts.context_repository_from_migrate(migrate_path, repository,
-                    default_username: login_username),
+                  {:ok, ctx} <- Accounts.context_repository_from_migrate(migrate_path, repository),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "project-name", repository.name),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "project-description", repository.description),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "short-project-name", repository.nickname),
@@ -217,11 +217,15 @@ defmodule EfossilsWeb.RepositoryController do
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "search-wiki", "1"),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "search-technote", "1"),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "search-ci", "0"),
-                  {:ok, _} <- Efossils.Command.setting(ctx, "default-perms", "dei"),
-                  {:ok, _} <- Efossils.Command.new_user(ctx,
-                    login_username, conn.assigns[:current_user].id, conn.assigns[:current_user].email),
+                  {:ok, _} <- Efossils.Command.setting(ctx, "default-perms", "dei2"),
+                  {:ok, _} <- Efossils.Command.new_user(ctx, login_username,
+                    EfossilsWeb.Utils.public_id(conn.assigns[:current_user]),
+                    conn.assigns[:current_user].email),
                   {:ok, _} <- Efossils.Command.capabilities_user(ctx, login_username, @default_capabilities),
                   {:ok, _} <- Efossils.Command.config_import(ctx, "fossil.skin"),
+                  {:ok, _} <- Efossils.Command.config_import(ctx, "fossil.ticket.skin"),
+                  {:ok, _} <- Efossils.Command.Collaborative.append_assigned_to(ctx, login_username),
+                  {:ok, _} <- Efossils.Command.capabilities_user(ctx, "nobody", @nobody_capabilities),
                   {:ok, _} <- Accounts.update_repository(repository, Enum.into(ctx, %{})),
       do: {:ok, repository}
     
