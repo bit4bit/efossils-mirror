@@ -171,7 +171,7 @@ defmodule EfossilsWeb.Proxy.Router do
 
     {:ok, rctx} = Efossils.Accounts.context_repository(repository)
     {credentials, anonymous} = cond do
-      current_user == nil -> {nil, false}
+      current_user == nil -> {nil, true}
       current_user.id == repository.owner_id ->
         {{current_user.nickname, current_user.email}, false}
       Efossils.Accounts.is_user_collaborator_for_repository(current_user, repository) ->
@@ -191,6 +191,13 @@ defmodule EfossilsWeb.Proxy.Router do
       true ->
         nil
     end
+
+    rctx = case credentials do
+             nil ->
+               Efossils.Command.set_username(rctx, "nobody")
+             _ ->
+               Efossils.Command.set_username(rctx, current_user.nickname)
+           end
     
     # TODO: http://localhost:4000/fossil tomar de peticion
     # FIXME: esto puede es una posible amenaza de seguridad ya que este string se pasa
@@ -205,18 +212,7 @@ defmodule EfossilsWeb.Proxy.Router do
              _ ->
                URI.encode_query(conn.body_params)
            end
-
-    rctx = case credentials do
-             nil ->
-               if anonymous do
-                 Efossils.Command.set_username(rctx, current_user.nickname)
-               else
-                 Efossils.Command.set_username(rctx, "nobody")
-               end
-             {username, _} ->
-               Efossils.Command.set_username(rctx, username)
-           end
-
+    
     case Efossils.Command.request_http(rctx, credentials, fossil_base_url,
           conn.method, url, body, req_headers) do
       {:ok, {body, headers, status_code}} ->
