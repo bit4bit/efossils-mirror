@@ -14,7 +14,7 @@
   </field>
 
   <div>
-    <%= submit gettext("Submit") %>
+    <%= submit gettext("Submit"), class: "ui primary submit button" %>
   </div>
 <% end %>
 
