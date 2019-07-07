@@ -13,6 +13,7 @@ config :efossils,
   fossil_base_url: "http://localhost:4000",
   fossil_repositories_path: "data/repositories",
   fossil_work_path: "data/works",
+  fossil_git_mirror_path: "data/gitmirror",
   fossil_user_admin: "efossils_admin"
 
 

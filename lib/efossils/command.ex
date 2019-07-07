@@ -36,10 +36,12 @@ defmodule Efossils.Command do
     work_path = Path.join([get_work_path, group, name])
     File.mkdir_p!(work_path)
     db_path = Path.join([group_path, "#{name}.fossil"])
-    
+    git_mirror_path = Path.join([get_git_mirror_path, name])
+    File.mkdir_p!(git_mirror_path)
     ctx = [db_path: db_path,
            work_path: work_path,
            group_path: group_path,
+           git_mirror_path: git_mirror_path,
            default_username: Keyword.get(opts, :default_username, get_username_admin),
           ]
     case cmd(ctx, ["init", db_path]) do
@@ -67,11 +69,15 @@ defmodule Efossils.Command do
     group_path = Path.join([get_repositories_path, group])
     File.mkdir_p!(group_path)
     work_path = Path.join([get_work_path, group, name])
+    git_mirror_path = Path.join([get_git_mirror_path, name])
+    File.mkdir_p!(git_mirror_path)
+
     File.mkdir_p!(work_path)
     db_path = Path.join([group_path, "#{name}.fossil"])
     :ok = File.cp(migrate_path, db_path)
     ctx = [db_path: db_path,
            work_path: work_path,
+           git_mirror_path: git_mirror_path,
            group_path: group_path,
            default_username: Keyword.get(opts, :default_username, get_username_admin)]
     {:ok, _} = force_setting(ctx, "http_authentication_ok", "1")
@@ -91,7 +97,21 @@ defmodule Efossils.Command do
       err -> err
     end
   end
-  
+
+  @doc """
+  Sincroniza a repositorio git
+  """
+  @spec git_export(context(), String.t) :: {:ok, context()} | {:error, String.t}
+  def git_export(ctx, url) do
+    case cmd(ctx, ["git", "export", Keyword.get(ctx, :git_mirror_path),
+                   "--autopush", url, "-R", Keyword.get(ctx, :db_path)]) do
+      {_stdout, 0} ->
+        {:ok, ctx}
+      {stdout, 1} ->
+        {:error, stdout}
+    end
+  end
+
   @doc """
   Crea un nuevo usuario en repositorio, si el usuario ya existe actualiza contrasena del mismo.
   Se utiliza `contact_info` como `id` de relacion, con plataforma.
@@ -476,6 +496,15 @@ defmodule Efossils.Command do
     end
   end
 
+  defp get_git_mirror_path do
+    path = Path.absname(Application.get_env(:efossils, :fossil_git_mirror_path))
+    if File.exists?(path) do
+      path
+    else
+      Application.app_dir(:efossils, path)
+    end
+  end
+  
   defp get_username_admin do
     Application.get_env(:efossils, :fossil_user_admin)
   end
