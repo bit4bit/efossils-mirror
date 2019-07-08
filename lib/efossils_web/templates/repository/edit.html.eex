@@ -124,7 +124,7 @@ Please type username.
               <% end %>
             </div>
             <div class="description">
-              <i class="octicon octicon-pin"></i><%= pushmirror.url %><br />
+              <%= gettext("Last Sync")%>: <%= pushmirror.last_sync %> <%= gettext("Status") %>: <%= pushmirror.last_sync_status %>
             </div>
           </div>
         </div>

@@ -7,6 +7,8 @@ defmodule Efossils.Repositories.PushMirror do
     field :source, :string
     field :name, :string
     field :url, :string
+    field :last_sync, :naive_datetime
+    field :last_sync_status, :string
     belongs_to :repository, Efossils.Accounts.Repository
     timestamps()
   end
@@ -14,7 +16,7 @@ defmodule Efossils.Repositories.PushMirror do
   @doc false
   def changeset(push_mirror, attrs) do
     push_mirror
-    |> cast(attrs, [:name, :source, :url, :repository_id])
+    |> cast(attrs, [:name, :source, :url, :last_sync_status, :last_sync, :repository_id])
     |> validate_required([:name, :source, :url])
   end
 end

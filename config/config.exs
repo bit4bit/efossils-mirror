@@ -9,7 +9,7 @@ use Mix.Config
 config :efossils,
   ecto_repos: [Efossils.Repo],
   federated_name: "Efossils",
-  fossil_bin: "fossil",
+  fossil_bin: "/home/bit4bit/policodigo/enetwork/fossil/vfossil",
   fossil_base_url: "http://localhost:4000",
   fossil_repositories_path: "data/repositories",
   fossil_work_path: "data/works",
