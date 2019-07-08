@@ -455,7 +455,7 @@ defmodule Efossils.Command do
     env = [{"HOME", Keyword.get(ctx, :work_path)},
            {"FOSSIL_USER", username},
            {"REMOTE_USER", username}]
-    System.cmd("fossil", args, [stderr_to_stdout: true, env: env] ++ opts)
+    System.cmd(get_command(), args, [stderr_to_stdout: true, env: env] ++ opts)
   end
 
   defp get_repositories_path do
