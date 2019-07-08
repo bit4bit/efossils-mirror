@@ -91,5 +91,12 @@
   <%= select f, :license, @licenses %>
 </div>
 
+<div class="inline field">
+  <div class="ui checkbox">
+    <%= checkbox f, :is_mirror %>
+    <%= label f, :is_mirror %>
+  </div>
+</div>
+
 <%= submit gettext("Migrate"), class: "ui primary submit button" %>
 <% end %>
