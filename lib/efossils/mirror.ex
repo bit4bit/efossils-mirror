@@ -22,9 +22,10 @@ defmodule Efossils.Mirror do
   """
   use GenServer
 
-  @ticktime 60_000
+  @ticktime 10_000
   alias Efossils.Repo
   alias Efossils.Repositories
+  alias Efossils.Accounts
 
   def start_link() do
     GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
@@ -36,33 +37,76 @@ defmodule Efossils.Mirror do
   end
 
   def handle_info(:tick, state) do
-    items = Enum.map(Repo.all(Repositories.PushMirror) |> Repo.preload([:repository]), fn(pushmirror) ->
+    spull = Enum.map(Repo.all(Repositories.PushMirror) |> Repo.preload([:repository]), fn(pushmirror) ->
       unless Map.has_key?(state, pushmirror.id) do
-        {:ok, pid} = Efossils.MirrorSync.start_link(pushmirror)
+        {:ok, pid} = Efossils.MirrorPush.start_link(pushmirror)
         Process.monitor(pid)
-        [
-          {pushmirror.id, {pid, pushmirror}},
-          {pid, {pid, pushmirror}}
-        ]
+        {pid, pushmirror}
       else
-        []
+        nil
       end
     end)
-    state1 = Enum.reduce(List.flatten(items), state, fn({key, val}, state) ->
+    |> Enum.reject(&(is_nil(&1)))
+
+    spush = Enum.map(Accounts.list_repositories_mirror(), fn(repository) ->
+      unless Map.has_key?(state, repository.id) do
+        if repository.is_mirror do
+          {:ok, pid} = Efossils.MirrorPull.start_link(repository)
+          Process.monitor(pid)
+          {pid, repository}
+        else
+          nil
+        end
+      else
+        nil
+      end
+    end)
+    |> Enum.reject(&(is_nil(&1)))
+
+    
+    state = Enum.reduce(spull ++ spush, state, fn ({key, val}, state) ->
       Map.put(state, key, val)
     end)
+
     Process.send_after(self(), :tick, @ticktime)
-    {:noreply, state1}
+    {:noreply, state}
   end
   
   def handle_info({:DOWN, _, :process, pid, _reason}, state) do
-    {{pid, pushmirror}, state} =  Map.pop(state, pid)
-    {_, state} = Map.pop(state, pushmirror.id)
+    {_, state} =  Map.pop(state, pid)
     {:noreply, state}
   end
 end
 
-defmodule Efossils.MirrorSync do
+
+
+defmodule Efossils.MirrorPull do
+  use GenServer
+
+
+  def start_link(repository) do
+    GenServer.start_link(__MODULE__, repository)
+  end
+
+  def init(repository) do
+    GenServer.cast(self(), :sync)
+    {:ok, repository}
+  end
+
+  def handle_cast(:sync, repository) do
+    do_pull(repository)
+    {:stop, :normal, repository}
+  end
+
+  defp do_pull(%Efossils.Accounts.Repository{source: "fossil", is_mirror: true} = repository) do
+    {:ok, ctx} = Efossils.Accounts.context_repository(repository)
+    # TODO: donde informar?
+    IO.puts(inspect Efossils.Command.pull(ctx, repository.clone_url))
+  end
+  defp do_pull(_), do: nil
+end
+
+defmodule Efossils.MirrorPush do
   use GenServer
 
   def start_link(pushmirror) do

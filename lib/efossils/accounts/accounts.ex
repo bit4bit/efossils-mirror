@@ -49,6 +49,11 @@ defmodule Efossils.Accounts do
       [%Repository{}, ...]
 
   """
+  def list_repositories_mirror do
+    Repo.all(from r in Repository, where: r.is_mirror == true)
+    |> Repo.preload([:base_repository, :owner])
+  end
+
   def list_repositories do
     Repo.all(Repository)
     |> Repo.preload([:base_repository, :owner])

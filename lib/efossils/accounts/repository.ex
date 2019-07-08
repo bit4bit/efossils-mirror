@@ -191,6 +191,7 @@ defmodule Efossils.Accounts.Repository do
     field :is_private, :boolean, default: false
     field :nickname, :string
     field :name, :string
+    field :source, :string
     field :num_forks, :integer
     field :num_stars, :integer
     field :num_watchers, :integer
@@ -211,7 +212,7 @@ defmodule Efossils.Accounts.Repository do
   @doc false
   def changeset(repository, attrs) do
     repository
-    |> cast(attrs, [:nickname, :name, :clone_url, :is_mirror, :project_code, :description, :website, :num_watchers, :num_stars, :num_forks, :is_private, :size, :license, :owner_id, :fossil_extras])
+    |> cast(attrs, [:nickname, :source, :name, :clone_url, :is_mirror, :project_code, :description, :website, :num_watchers, :num_stars, :num_forks, :is_private, :size, :license, :owner_id, :fossil_extras])
     |> Efossils.Utils.build_nickname()
     |> cast_assoc(:owner)
     |> cast_assoc(:base_repository)

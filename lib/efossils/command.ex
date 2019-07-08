@@ -127,6 +127,20 @@ defmodule Efossils.Command do
   end
 
   @doc """
+  Pull a URL
+  """
+  @spec pull(context(), String.t) :: {:ok, context()} | {:error, String.t}
+  def pull(ctx, url) do
+    case cmd(ctx, ["pull", url, "--once", "--verily", 
+                   "-R", Keyword.get(ctx, :db_path)]) do
+      {_stdout, 0} ->
+        {:ok, ctx}
+      {stdout, 1} ->
+        {:error, stdout}
+    end
+  end
+
+  @doc """
   project-code
   """
   def project_code(ctx) do
