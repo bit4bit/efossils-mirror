@@ -25,6 +25,7 @@
   </div>
 <% end %>
 
+
 <div class="required field">
   <%= label f, :owner %>
   <%= select f, :owner_id, @users %>
@@ -56,6 +57,22 @@
 <div class="field">
   <%= label f, :license %>
   <%= select f, :license, @licenses %>
+</div>
+
+<div class="ui styled accordion">
+  <div class="title">
+    <i class="dropdown icon"></i>
+    <%= gettext("Settings")%>
+  </div>
+   <div class="content">
+     <div class="transition hidden">
+       <div class="field">
+        <%= label f, :project_code %>
+        <%= text_input f, :project_code%>
+       </div>
+        <%= gettext("Override project code (Optional, but may be needed if pushing an already created repo to Efossils.")%>
+    </div>
+  </div>
 </div>
 
 <%= submit gettext("Create Repository"), class: "ui primary submit button" %>

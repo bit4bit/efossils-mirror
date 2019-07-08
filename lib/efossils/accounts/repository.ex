@@ -198,7 +198,7 @@ defmodule Efossils.Accounts.Repository do
     field :website, :string
     field :license, :string
     field :fossil_extras, :map
-    field :project_code, :string, virtual: true
+    field :project_code, :string
     belongs_to :base_repository, Efossils.Accounts.Repository
     belongs_to :owner, Efossils.User
     has_many :collaborations, Efossils.Accounts.Collaboration
@@ -209,7 +209,7 @@ defmodule Efossils.Accounts.Repository do
   @doc false
   def changeset(repository, attrs) do
     repository
-    |> cast(attrs, [:nickname, :name, :description, :website, :num_watchers, :num_stars, :num_forks, :is_private, :size, :license, :owner_id, :fossil_extras])
+    |> cast(attrs, [:nickname, :name, :project_code, :description, :website, :num_watchers, :num_stars, :num_forks, :is_private, :size, :license, :owner_id, :fossil_extras])
     |> Efossils.Utils.build_nickname()
     |> cast_assoc(:owner)
     |> cast_assoc(:base_repository)

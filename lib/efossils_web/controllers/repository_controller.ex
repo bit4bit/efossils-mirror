@@ -47,7 +47,7 @@ defmodule EfossilsWeb.RepositoryController do
     |> Accounts.Repository.prepare_attrs
 
     login_username = conn.assigns[:current_user].nickname
-
+    # TODO: esto es aberrante, hacer transaccional
     result = with {:ok, repository} <- Accounts.create_repository(repository_params),
                   {:ok, ctx} <- Accounts.context_repository(repository),
                   {:ok, ctx} <- Efossils.Command.new_user(ctx, login_username,
@@ -74,6 +74,12 @@ defmodule EfossilsWeb.RepositoryController do
     
     case result do
       {:ok, repository} ->
+        if repository_params["project_code"] != "" do
+          {:ok, ctx} = Accounts.context_repository(repository)
+	        Efossils.Command.force_setting(ctx, "project-code", repository_params["project_code"])
+        end
+        Accounts.update_repository(repository, %{"project_code" => Accounts.repository_project_code(repository)})
+
         conn
         |> put_flash(:info, "Repository created successfully.")
         |> redirect(to: "/dashboard")
