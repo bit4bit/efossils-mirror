@@ -4,8 +4,8 @@ Gestor multirepositorio para [fossil-scm](https://www.fossil-scm.org)
 
 # Requerimientos
 
-  *  fossil 2.7
-  *  Elixir v1.6.6
+  *  fossil 2.9
+  *  Elixir v1.7
   *  npm v6
   *  PostgreSQL
   *  timeout, git
