@@ -113,6 +113,32 @@ defmodule Efossils.Command do
   end
 
   @doc """
+  Push a URL
+  """
+  @spec push(context(), String.t) :: {:ok, context()} | {:error, String.t}
+  def push(ctx, url) do
+    case cmd(ctx, ["push", url, "--once", "--verily", 
+                   "-R", Keyword.get(ctx, :db_path)]) do
+      {_stdout, 0} ->
+        {:ok, ctx}
+      {stdout, 1} ->
+        {:error, stdout}
+    end
+  end
+
+  @doc """
+  project-code
+  """
+  def project_code(ctx) do
+    case db_config_get(ctx, "project-code") do
+      {:ok, code} ->
+        IO.chardata_to_string(code)
+      _ ->
+        ""
+    end
+  end
+
+  @doc """
   Crea un nuevo usuario en repositorio, si el usuario ya existe actualiza contrasena del mismo.
   Se utiliza `contact_info` como `id` de relacion, con plataforma.
   

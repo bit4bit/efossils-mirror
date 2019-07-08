@@ -75,6 +75,11 @@ defmodule Efossils.MirrorSync do
   end
 
   def handle_cast(:sync, %{pushmirror: pushmirror} = state) do
+    do_push(pushmirror)
+    {:stop, :normal, state}
+  end
+
+  defp do_push(%Efossils.Repositories.PushMirror{source: "git"} = pushmirror) do
     {:ok, ctx} = Efossils.Accounts.context_repository(pushmirror.repository)
     case Efossils.Command.git_export(ctx, pushmirror.url) do
       {:ok, _} ->
@@ -84,6 +89,16 @@ defmodule Efossils.MirrorSync do
         {:ok, _} = Efossils.Repositories.update_push_mirror(pushmirror,
         %{"last_sync": DateTime.utc_now(), "last_sync_status": "failed" })
     end
-    {:stop, :normal, state}
+  end
+  defp do_push(%Efossils.Repositories.PushMirror{source: "fossil"} = pushmirror) do
+    {:ok, ctx} = Efossils.Accounts.context_repository(pushmirror.repository)
+    case Efossils.Command.push(ctx, pushmirror.url) do
+      {:ok, _} ->
+        {:ok, _} = Efossils.Repositories.update_push_mirror(pushmirror,
+        %{"last_sync": DateTime.utc_now(), "last_sync_status": "ok" })
+      {:error, _} ->
+        {:ok, _} = Efossils.Repositories.update_push_mirror(pushmirror,
+        %{"last_sync": DateTime.utc_now(), "last_sync_status": "failed" })
+    end
   end
 end

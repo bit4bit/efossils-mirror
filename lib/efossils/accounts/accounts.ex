@@ -88,7 +88,19 @@ defmodule Efossils.Accounts do
       ** (Ecto.NoResultsError)
 
   """
-  def get_repository!(id), do: Repo.get!(Repository, id) |> Repo.preload([:base_repository, :owner])
+  def repository_project_code(repository) do
+      case Efossils.Accounts.context_repository(repository) do
+      {:ok, ctx} ->
+          Efossils.Command.project_code(ctx)
+        _ ->
+          ""
+      end
+  end
+  
+  def get_repository!(id) do
+    Repo.get!(Repository, id)
+    |> Repo.preload([:base_repository, :owner])
+  end
   def get_repository_by_name!(name) do
     Repo.get_by!(Repository, nickname: name)
     |> Repo.preload([:base_repository, :owner])
@@ -97,6 +109,7 @@ defmodule Efossils.Accounts do
     Repo.get_by!(Repository, owner_id: owner.id, id: id)
     |> Repo.preload([:base_repository, :owner])
   end
+
   @doc """
   Creates a repository.
 

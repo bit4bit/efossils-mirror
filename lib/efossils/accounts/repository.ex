@@ -198,6 +198,7 @@ defmodule Efossils.Accounts.Repository do
     field :website, :string
     field :license, :string
     field :fossil_extras, :map
+    field :project_code, :string, virtual: true
     belongs_to :base_repository, Efossils.Accounts.Repository
     belongs_to :owner, Efossils.User
     has_many :collaborations, Efossils.Accounts.Collaboration

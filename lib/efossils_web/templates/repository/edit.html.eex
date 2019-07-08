@@ -25,7 +25,11 @@
     <p>Oops, something went wrong! Please check the errors below.</p>
   </div>
 <% end %>
-
+<div class="ui list">
+  <div class="item">
+    project-code: <%= Efossils.Accounts.repository_project_code(@repository)%>
+  </div>
+</div>
 <div class="inline field">
   <div class="ui checkbox">
     <%= checkbox f, :is_private %>
