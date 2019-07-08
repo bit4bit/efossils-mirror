@@ -30,6 +30,7 @@ config :efossils,
   fossil_repositories_path: System.get_env("EFOSSILS_REPOSITORY_PATH"),
   fossil_work_path: System.get_env("EFOSSILS_WORK_PATH"),
   fossil_user_admin: "efossils_admin",
+  fossil_mirror_ticktime: String.to_integer(System.get_env("EFOSSILS_MIRROR_TICKTIME") || "600000"),
   email_from_name: System.get_env("EFOSSILS_EMAIL_FROM_NAME"),
   email_from_email: System.get_env("EFOSSILS_EMAIL_FROM_EMAIL")
 

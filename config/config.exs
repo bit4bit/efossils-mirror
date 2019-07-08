@@ -14,8 +14,8 @@ config :efossils,
   fossil_repositories_path: "data/repositories",
   fossil_work_path: "data/works",
   fossil_git_mirror_path: "data/gitmirror",
-  fossil_user_admin: "efossils_admin"
-
+  fossil_user_admin: "efossils_admin",
+  fossil_mirror_ticktime: 60_000_0
 
 # Configures the endpoint
 config :efossils, EfossilsWeb.Endpoint,
