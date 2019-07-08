@@ -170,6 +170,8 @@ defmodule EfossilsWeb.RepositoryController do
 
     case Repositories.create_push_mirror(pushmirror_params) do
       {:ok, pushmirror} ->
+        pushmirrors = Repositories.list_push_mirrors(repository)
+
         conn
         |> render("edit.html", repository: repository,
         changeset: changeset,

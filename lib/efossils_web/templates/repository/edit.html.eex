@@ -66,7 +66,7 @@ Please type username.
         <i class="left floated octicon octicon-person"></i>
         <div class="right content">
           <%= colab.user.nickname %>
-          <%= link "X", to: repository_collaboration_path(@conn, :collaboration_delete, @repository, colab.user.id), method: :delete %>
+          <%= link "X", to: repository_collaboration_path(@conn, :collaboration_delete, @repository, colab.user.id), method: :delete, data: [confirm: gettext("Are you sure?")] %>
         </div>
       </div>
     <% end %>
@@ -119,7 +119,7 @@ Please type username.
           <div class="content">
               <div class="header"><%= pushmirror.name %> source: <%= pushmirror.source %>
 
-              <%= link  to: repository_pushmirror_path(@conn, :pushmirror_delete, @repository, pushmirror.id), method: :delete do %>
+              <%= link  to: repository_pushmirror_path(@conn, :pushmirror_delete, @repository, pushmirror.id), method: :delete, data: [confirm: "Are you user?"] do %>
                 <i class="octicon octicon-x"></i>
               <% end %>
             </div>
