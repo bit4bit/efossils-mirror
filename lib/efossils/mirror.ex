@@ -125,7 +125,7 @@ defmodule Efossils.MirrorPush do
 
   defp do_push(%Efossils.Repositories.PushMirror{source: "git"} = pushmirror) do
     {:ok, ctx} = Efossils.Accounts.context_repository(pushmirror.repository)
-    case Efossils.Command.git_export(ctx, pushmirror.url) do
+    case Efossils.Command.git_export(ctx, Integer.to_string(pushmirror.id), pushmirror.url) do
       {:ok, _} ->
         {:ok, _} = Efossils.Repositories.update_push_mirror(pushmirror,
         %{"last_sync": DateTime.utc_now(), "last_sync_status": "ok" })

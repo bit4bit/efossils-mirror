@@ -101,9 +101,12 @@ defmodule Efossils.Command do
   @doc """
   Sincroniza a repositorio git
   """
-  @spec git_export(context(), String.t) :: {:ok, context()} | {:error, String.t}
-  def git_export(ctx, url) do
-    case cmd(ctx, ["git", "export", Keyword.get(ctx, :git_mirror_path),
+  @spec git_export(context(), String.t, String.t) :: {:ok, context()} | {:error, String.t}
+  def git_export(ctx, uid, url) do
+    mirror_path = Path.join(Keyword.get(ctx, :git_mirror_path), uid)
+    File.mkdir_p!(mirror_path)
+
+    case cmd(ctx, ["git", "export", mirror_path,
                    "--autopush", url, "-R", Keyword.get(ctx, :db_path)]) do
       {_stdout, 0} ->
         {:ok, ctx}
