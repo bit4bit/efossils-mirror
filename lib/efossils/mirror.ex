@@ -22,7 +22,7 @@ defmodule Efossils.Mirror do
   """
   use GenServer
 
-  @ticktime 60_000
+  @ticktime 10_000
   alias Efossils.Repo
   alias Efossils.Repositories
   alias Efossils.Accounts
@@ -90,20 +90,43 @@ defmodule Efossils.MirrorPull do
 
   def init(repository) do
     GenServer.cast(self(), :sync)
-    {:ok, repository}
+    {:ok, %{repo: repository, timeout: 60_000}}
   end
 
-  def handle_cast(:sync, repository) do
-    do_pull(repository)
-    {:stop, :normal, repository}
+  def handle_cast(:sync, %{repo: repository} = state) do
+    do_sync(repository, state)
+  end
+
+  def handle_info(:sync, %{repo: repository} = state) do
+    do_sync(repository, state)
+  end
+
+  defp do_sync(repository, %{timeout: timeout} = state) do
+    case do_pull(repository) do
+      :ok ->
+        {:stop, :normal, state}
+      :locked ->
+        Process.send_after(self(), :sync, timeout)
+        state = Map.put(state, :timeout, timeout + 60_000)
+        {:noreply, state}
+    end
   end
 
   defp do_pull(%Efossils.Accounts.Repository{source: "fossil", is_mirror: true} = repository) do
     {:ok, ctx} = Efossils.Accounts.context_repository(repository)
     # TODO: donde informar?
-    {:ok, _} = Efossils.Command.pull(ctx, repository.clone_url)
+    case Efossils.Command.pull(ctx, repository.clone_url) do
+      {:ok, _} ->
+        :ok
+      {:error, reason} ->
+        if String.contains?(reason, "database is locked") do
+          :locked
+        else
+          raise reason
+        end
+    end
   end
-  defp do_pull(_), do: nil
+  defp do_pull(_), do: :ok
 end
 
 defmodule Efossils.MirrorPush do
