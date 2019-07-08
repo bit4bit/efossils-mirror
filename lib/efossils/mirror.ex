@@ -22,7 +22,7 @@ defmodule Efossils.Mirror do
   """
   use GenServer
 
-  @ticktime 10_000
+  @ticktime 60_000
   alias Efossils.Repo
   alias Efossils.Repositories
   alias Efossils.Accounts
