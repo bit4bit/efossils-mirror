@@ -22,7 +22,7 @@ defmodule Efossils.Mirror do
   """
   use GenServer
 
-  @ticktime 10_000
+  @ticktime 60_000
   alias Efossils.Repo
   alias Efossils.Repositories
   alias Efossils.Accounts
@@ -101,7 +101,7 @@ defmodule Efossils.MirrorPull do
   defp do_pull(%Efossils.Accounts.Repository{source: "fossil", is_mirror: true} = repository) do
     {:ok, ctx} = Efossils.Accounts.context_repository(repository)
     # TODO: donde informar?
-    IO.puts(inspect Efossils.Command.pull(ctx, repository.clone_url))
+    {:ok, _} = Efossils.Command.pull(ctx, repository.clone_url)
   end
   defp do_pull(_), do: nil
 end

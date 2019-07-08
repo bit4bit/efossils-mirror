@@ -26,8 +26,8 @@ defmodule EfossilsWeb.RepositoryController do
   @nobody_capabilities "gjorz2"
   @default_capabilities "cdefgijkmnortuvwx4"
   @default_capabilities_collaborator "cdefgijkmnortuvwx4"
-  @sources_migration [{"GIT", "git"}, {"Fossil", "fossil"}]
-  @sources_pushmirror [{"GIT", "git"}, {"Fossil", "fossil"}]
+  @sources_migration [{"Fossil", "fossil"}, {"GIT", "git"}]
+  @sources_pushmirror [{"Fossil", "fossil"}, {"GIT", "git"}]
 
   def new(conn, _params) do
     users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
