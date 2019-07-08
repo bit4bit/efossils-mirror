@@ -92,6 +92,7 @@ defmodule Efossils.Command do
   
   @spec delete_repository(context()):: {:ok, context()} | {:error, File.posix()}
   def delete_repository(ctx) do
+    File.rm_rf(Keyword.get(ctx, :git_mirror_path))
     case File.rm(Keyword.get(ctx, :db_path)) do
       :ok -> {:ok, ctx}
       err -> err

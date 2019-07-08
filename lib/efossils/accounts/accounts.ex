@@ -177,6 +177,8 @@ defmodule Efossils.Accounts do
             where: c.repository_id == ^repository.id))
       Repo.delete_all(from(c in Efossils.Accounts.Star,
             where: c.repository_id == ^repository.id))
+      Repo.delete_all(from(c in Efossils.Repositories.PushMirror,
+            where: c.repository_id == ^repository.id))
       from(u in User, where: u.id == ^repository.owner_id)
       |> Repo.update_all(inc: [num_repos: -1])
       Repo.delete!(repository)
