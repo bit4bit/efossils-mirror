@@ -18,6 +18,7 @@
 
 defmodule EfossilsWeb.RepositoryController do
   use EfossilsWeb, :controller
+  alias Efossils.Repositories
   alias Efossils.Accounts
   alias Efossils.Repo
 
@@ -25,13 +26,13 @@ defmodule EfossilsWeb.RepositoryController do
   @default_capabilities "cdefgijkmnortuvwx4"
   @default_capabilities_collaborator "cdefgijkmnortuvwx4"
   @sources_migration [{"GIT", "git"}, {"Fossil", "fossil"}]
-  
+  @sources_pushmirror [{"GIT", "git"}]
+
   def new(conn, _params) do
     users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
     changeset = Accounts.change_repository(
       %Accounts.Repository{owner_id: conn.assigns[:current_user].id}
     )
-      
     render(conn, "new.html",
       changeset: changeset,
       users: users,
@@ -94,21 +95,40 @@ defmodule EfossilsWeb.RepositoryController do
   def edit(conn, %{"id" => id}) do
     repository = Accounts.get_repository!(conn.assigns[:current_user], id)
     collaborations = Accounts.list_collaborations(repository)
+    pushmirrors = Repositories.list_push_mirrors(repository)
     changeset = Accounts.change_repository(repository)
-    render(conn, "edit.html", repository: repository, changeset: changeset, collaborations: collaborations)
+    changeset_pushmirror = Repositories.change_push_mirror(
+      %Repositories.PushMirror{repository_id: repository.id}
+    )
+    
+    render(conn, "edit.html", repository: repository,
+      changeset: changeset,
+      changeset_pushmirror: changeset_pushmirror,
+      sources_pushmirror: @sources_pushmirror,
+      pushmirrors: pushmirrors,
+      collaborations: collaborations)
   end
 
   def update(conn, %{"id" => id, "repository" => params}) do
     repository = Accounts.get_repository!(conn.assigns[:current_user], id)
     with_owner_params = Map.put(params, "owner_id", conn.assigns[:current_user].id)
     collaborations = Accounts.list_collaborations(repository)
+    pushmirrors = Repositories.list_push_mirrors(repository)
+    changeset_pushmirror = Repositories.change_push_mirror(
+      %Repositories.PushMirror{repository_id: repository.id}
+    )
+
     case Accounts.update_repository(repository, with_owner_params) do
       {:ok, repository} ->
         conn
         |> put_flash(:info, "Repository updated successfully.")
         |> redirect(to: "/dashboard")
       {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, "edit.html", repository: repository, changeset: changeset, collaborations: collaborations)
+        render(conn, "edit.html", repository: repository,
+          changeset: changeset, changeset_pushmirror: changeset_pushmirror,
+          sources_pushmirror: @sources_pushmirror,
+          pushmirrors: pushmirrors,
+          collaborations: collaborations)
     end
   end
 
@@ -116,6 +136,11 @@ defmodule EfossilsWeb.RepositoryController do
     repository = Accounts.get_repository!(conn.assigns[:current_user], id)
     changeset = Accounts.change_repository(repository)
     collaborations = Accounts.list_collaborations(repository)
+    pushmirrors = Repositories.list_push_mirrors(repository)
+    changeset_pushmirror = Repositories.change_push_mirror(
+      %Repositories.PushMirror{repository_id: repository.id}
+    )
+
     if repository.name == String.trim(params["confirm_name"]) do
       {:ok, _} = Accounts.delete_repository(repository)
       {:ok, ctx} = Accounts.context_repository(repository)
@@ -125,14 +150,60 @@ defmodule EfossilsWeb.RepositoryController do
       |> redirect(to: "/dashboard")
     else
       Plug.Conn.assign(conn, :delete_error, "Please verify")
-      |> render("edit.html", repository: repository, changeset: changeset, collaborations: collaborations)
+      |> render("edit.html", repository: repository,
+      changeset: changeset, changeset_pushmirror: changeset_pushmirror,
+      sources_pushmirror: @sources_pushmirror,
+      pushmirrors: pushmirrors,
+      collaborations: collaborations)
     end
+  end
+
+  def pushmirror_create(conn, %{"push_mirror" => pushmirror_params}) do
+    repository = Accounts.get_repository!(conn.assigns[:current_user], pushmirror_params["repository_id"])
+    changeset = Accounts.change_repository(repository)
+    changeset_pushmirror = Repositories.change_push_mirror(
+      %Repositories.PushMirror{repository_id: repository.id}
+    )
+    pushmirrors = Repositories.list_push_mirrors(repository)
+    collaborations = Accounts.list_collaborations(repository)
+
+
+    case Repositories.create_push_mirror(pushmirror_params) do
+      {:ok, pushmirror} ->
+        conn
+        |> render("edit.html", repository: repository,
+        changeset: changeset,
+        changeset_pushmirror: changeset_pushmirror,
+        pushmirrors: pushmirrors,
+        sources_pushmirror: @sources_pushmirror,
+        collaborations: collaborations)
+      {:error, %Ecto.Changeset{} = changeset_pushmirror} ->
+        conn
+        |> render("edit.html", repository: repository,
+        changeset: changeset,
+        changeset_pushmirror: changeset_pushmirror,
+        pushmirrors: pushmirrors,
+        sources_pushmirror: @sources_pushmirror,
+        collaborations: collaborations)
+    end
+  end
+
+  def pushmirror_delete(conn, %{"repository_id" => repository_id, "push_mirror_id" => id}) do
+    repository = Accounts.get_repository!(conn.assigns[:current_user], repository_id)
+    pushmirror = Repositories.get_push_mirror!(id)
+    Repositories.delete_push_mirror(pushmirror)
+    conn
+    |> redirect(to: repository_path(conn, :edit, repository))
   end
 
   def collaboration_create(conn, %{"repository_id" => id, "username" => username}) do
     repository = Accounts.get_repository!(conn.assigns[:current_user], id)
     changeset = Accounts.change_repository(repository)
+    changeset_pushmirror = Repositories.change_push_mirror(
+      %Repositories.PushMirror{repository_id: repository.id}
+    )
     collaborations = Accounts.list_collaborations(repository)
+    pushmirrors = Repositories.list_push_mirrors(repository)
     case Accounts.get_user_by_name(username) do
       nil ->
         Plug.Conn.assign(conn, :collaboration_error, "User not found")
@@ -156,10 +227,18 @@ defmodule EfossilsWeb.RepositoryController do
             
             collaborations = Accounts.list_collaborations(repository)
             conn
-            |> render("edit.html", repository: repository, changeset: changeset, collaborations: collaborations)
+            |> render("edit.html", repository: repository,
+            changeset: changeset, changeset_pushmirror: changeset_pushmirror,
+            sources_pushmirror: @sources_pushmirror,
+            pushmirrors: pushmirrors,
+            collaborations: collaborations)
           {:error, _} ->
             Plug.Conn.assign(conn, :collaboration_error, "User exists")
-            |> render("edit.html", repository: repository, changeset: changeset, collaborations: collaborations)
+            |> render("edit.html", repository: repository,
+            changeset: changeset, changeset_pushmirror: changeset_pushmirror,
+            sources_pushmirror: @sources_pushmirror,
+            pushmirrors: pushmirrors,
+            collaborations: collaborations)
         end
     end
     

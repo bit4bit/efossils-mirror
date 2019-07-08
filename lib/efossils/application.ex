@@ -35,6 +35,8 @@ defmodule Efossils.Application do
       # Start your own worker by calling: Efossils.Worker.start_link(arg1, arg2, arg3)
       # worker(Efossils.Worker, [arg1, arg2, arg3]),
       worker(Efossils.Http, []),
+      {DynamicSupervisor, strategy: :one_for_one, name: Efossils.MirrorSupervisor},
+      worker(Efossils.Mirror, []),
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

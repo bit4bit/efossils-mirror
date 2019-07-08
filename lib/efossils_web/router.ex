@@ -80,8 +80,10 @@ defmodule EfossilsWeb.Router do
       put "/delete", RepositoryController, :delete_repository, as: :settings
       post "/collaboration/add", RepositoryController, :collaboration_create, as: :collaboration
       delete "/collaboration/:user_id/delete", RepositoryController, :collaboration_delete, as: :collaboration
+      post "/pushmirror/add", RepositoryController, :pushmirror_create, as: :pushmirror
+      delete "/pushmirror/:push_mirror_id/delete", RepositoryController, :pushmirror_delete, as: :pushmirror
     end
-    
+
     get "/migrate/repository", RepositoryController, :migrate_new, as: :migration
     post "/migrate/repository", RepositoryController, :migrate_create, as: :migration
   end
