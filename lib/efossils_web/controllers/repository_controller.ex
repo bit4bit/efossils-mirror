@@ -22,7 +22,7 @@ defmodule EfossilsWeb.RepositoryController do
   alias Efossils.Accounts
   alias Efossils.Repo
 
-  @readonly_capabilities "ghjr2"
+  @readonly_capabilities "ghojr2"
   @nobody_capabilities "gjorz2"
   @default_capabilities "cdefgijkmnortuvwx4"
   @default_capabilities_collaborator "cdefgijkmnortuvwx4"
