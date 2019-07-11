@@ -27,16 +27,22 @@ defmodule Efossils.Accounts do
   alias Efossils.Accounts.Repository
   alias Efossils.User
 
+  defp build_repo_id(repo) do
+    # ATTENTION: si se modifica se debe actualizar todos
+    # los repositorios en disco
+    Integer.to_string(repo.id)
+  end
+
   @doc """
   Inicializa gestión del repository por medio de `Efossils.Command`.
   """
   def context_repository(repo, opts \\ []) do
-    Efossils.Command.init_repository(Integer.to_string(repo.id),
+    Efossils.Command.init_repository(build_repo_id(repo),
       Integer.to_string(repo.owner_id), opts)
   end
 
   def context_repository_from_migrate(migrate_path, repo, opts \\ []) do
-    Efossils.Command.init_from_db(migrate_path, Integer.to_string(repo.id),
+    Efossils.Command.init_from_db(migrate_path, build_repo_id(repo),
       Integer.to_string(repo.owner_id), opts)
   end
   

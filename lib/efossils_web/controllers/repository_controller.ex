@@ -29,8 +29,11 @@ defmodule EfossilsWeb.RepositoryController do
   @sources_migration [{"Fossil", "fossil"}, {"GIT", "git"}]
   @sources_pushmirror [{"Fossil", "fossil"}, {"GIT", "git"}]
 
+  def allowed_owners(conn) do
+    [{conn.assigns.current_user.name, conn.assigns.current_user.id}]
+  end
   def new(conn, _params) do
-    users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
+    users = allowed_owners(conn)
     changeset = Accounts.change_repository(
       %Accounts.Repository{owner_id: conn.assigns[:current_user].id}
     )
@@ -42,51 +45,72 @@ defmodule EfossilsWeb.RepositoryController do
 
   
   def create(conn, %{"repository" => repository_params}) do
-    
+    users = allowed_owners(conn)
+
     repository_params = repository_params
     |> Map.put("owner_id", conn.assigns[:current_user].id)
     |> Accounts.Repository.prepare_attrs
 
     login_username = conn.assigns[:current_user].nickname
-    # TODO: esto es aberrante, hacer transaccional
-    result = with {:ok, repository} <- Accounts.create_repository(repository_params),
-                  {:ok, ctx} <- Accounts.context_repository(repository),
-                  {:ok, ctx} <- Efossils.Command.new_user(ctx, login_username,
-                    EfossilsWeb.Utils.public_id(conn.assigns[:current_user]),
-                    conn.assigns[:current_user].email),
-                  {:ok, _} <- Efossils.Command.force_setting(ctx, "project-name", repository.name),
-                  {:ok, _} <- Efossils.Command.force_setting(ctx, "project-description", repository.description),
-                  {:ok, _} <- Efossils.Command.force_setting(ctx, "short-project-name", repository.nickname),
-                  {:ok, _} <- Efossils.Command.force_setting(ctx, "search-doc", "1"),
-                  {:ok, _} <- Efossils.Command.force_setting(ctx, "search-tkt", "1"),
-                  {:ok, _} <- Efossils.Command.force_setting(ctx, "search-wiki", "1"),
-                  {:ok, _} <- Efossils.Command.force_setting(ctx, "search-technote", "1"),
-                  {:ok, _} <- Efossils.Command.force_setting(ctx, "search-ci", "0"),
-                  {:ok, _} <- Efossils.Command.setting(ctx, "default-perms", "dei2"),
-                  {:ok, _} <- Efossils.Command.password_user(ctx,
-                    login_username, conn.assigns[:current_user].email),
-                  {:ok, _} <- Efossils.Command.capabilities_user(ctx, login_username, @default_capabilities),
-                  {:ok, _} <- Efossils.Command.config_import(ctx, "fossil.skin"),
-                  {:ok, _} <- Efossils.Command.config_import(ctx, "fossil.ticket.skin"),
-                  {:ok, _} <- Efossils.Command.Collaborative.append_assigned_to(ctx, login_username),
-                  {:ok, _} <- Efossils.Command.capabilities_user(ctx, "nobody", @nobody_capabilities),
-                  {:ok, _} <- Accounts.update_repository(repository, Enum.into(ctx, %{})),
-      do: {:ok, repository}
+    result = Ecto.Multi.new()
+    |> Ecto.Multi.run(:repository, fn repo, %{} ->
+      Accounts.create_repository(repository_params)
+    end)
+    |> Ecto.Multi.run(:ctx, fn repo, %{repository: repository} ->
+      Accounts.context_repository(repository)
+    end)
+    |> Ecto.Multi.run(:commands, fn repo, %{repository: repository, ctx: ctx} ->
+      with {:ok, ctx} <- Efossils.Command.new_user(ctx, login_username,
+        EfossilsWeb.Utils.public_id(conn.assigns[:current_user]),
+        conn.assigns[:current_user].email),
+      {:ok, _} <- Efossils.Command.force_setting(ctx, "project-name", repository.name),
+      {:ok, _} <- Efossils.Command.force_setting(ctx, "project-description", repository.description),
+      {:ok, _} <- Efossils.Command.force_setting(ctx, "short-project-name", repository.nickname),
+      {:ok, _} <- Efossils.Command.force_setting(ctx, "search-doc", "1"),
+      {:ok, _} <- Efossils.Command.force_setting(ctx, "search-tkt", "1"),
+      {:ok, _} <- Efossils.Command.force_setting(ctx, "search-wiki", "1"),
+      {:ok, _} <- Efossils.Command.force_setting(ctx, "search-technote", "1"),
+      {:ok, _} <- Efossils.Command.force_setting(ctx, "search-ci", "0"),
+      {:ok, _} <- Efossils.Command.setting(ctx, "default-perms", "dei2"),
+      {:ok, _} <- Efossils.Command.password_user(ctx,
+        login_username, conn.assigns[:current_user].email),
+      {:ok, _} <- Efossils.Command.capabilities_user(ctx, login_username, @default_capabilities),
+      {:ok, _} <- Efossils.Command.config_import(ctx, "fossil.skin"),
+      {:ok, _} <- Efossils.Command.config_import(ctx, "fossil.ticket.skin"),
+      {:ok, _} <- Efossils.Command.Collaborative.append_assigned_to(ctx, login_username),
+      {:ok, ctx} <- Efossils.Command.capabilities_user(ctx, "nobody", @nobody_capabilities),
+        do: {:ok, ctx}
+    end)
+    |> Ecto.Multi.run(:update_ctx, fn repo, %{commands: ctx, repository: repository} ->
+      Accounts.update_repository(repository, Enum.into(ctx, %{}))
+    end)
     
-    case result do
-      {:ok, repository} ->
+    case Repo.transaction(result) do
+      {:ok, %{repository: repository}} ->
         if repository_params["project_code"] != "" do
           {:ok, ctx} = Accounts.context_repository(repository)
 	        Efossils.Command.force_setting(ctx, "project-code", repository_params["project_code"])
         end
         Accounts.update_repository(repository, %{"project_code" => Accounts.repository_project_code(repository)})
-
         conn
         |> put_flash(:info, "Repository created successfully.")
         |> redirect(to: "/dashboard")
-      {:error, %Ecto.Changeset{} = changeset} ->
-        users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
-
+      {:error, :commands, error, %{ctx: ctx}} ->
+        Efossils.Command.delete_repository(ctx)
+        changeset = Accounts.Repository.changeset(%Accounts.Repository{})
+        |> Ecto.Changeset.add_error(:name, inspect(error))
+        render(conn, "new.html",
+          changeset: changeset,
+          users: users,
+          licenses: build_list_licenses())
+      {:error, :repository, %Ecto.Changeset{} = changeset, _} ->
+        render(conn, "new.html",
+          changeset: changeset,
+          users: users,
+          licenses: build_list_licenses())
+      {:error, _, error, _} ->
+        changeset = Accounts.Repository.changeset(%Accounts.Repository{})
+        |> Ecto.Changeset.add_error(:name, inspect(error))
         render(conn, "new.html",
           changeset: changeset,
           users: users,

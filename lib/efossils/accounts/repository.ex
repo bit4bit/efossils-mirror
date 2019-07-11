@@ -210,7 +210,7 @@ defmodule Efossils.Accounts.Repository do
   end
 
   @doc false
-  def changeset(repository, attrs) do
+  def changeset(repository, attrs \\ %{}) do
     repository
     |> cast(attrs, [:nickname, :source, :name, :clone_url, :is_mirror, :project_code, :description, :website, :num_watchers, :num_stars, :num_forks, :is_private, :size, :license, :owner_id, :fossil_extras])
     |> Efossils.Utils.build_nickname()

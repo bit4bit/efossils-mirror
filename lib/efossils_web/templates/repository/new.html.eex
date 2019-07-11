@@ -25,7 +25,6 @@
   </div>
 <% end %>
 
-
 <div class="required field">
   <%= label f, :owner %>
   <%= select f, :owner_id, @users %>
