@@ -94,7 +94,7 @@
 <div class="inline field">
   <div class="ui checkbox">
     <%= checkbox f, :is_mirror %>
-    <%= label f, :is_mirror %>
+    <%= label f, :is_mirror, title: 'Only for Fossil' %>
   </div>
 </div>
 
