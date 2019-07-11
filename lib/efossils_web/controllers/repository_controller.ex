@@ -304,7 +304,7 @@ defmodule EfossilsWeb.RepositoryController do
   end
 
   def migrate_create(conn, %{"repository" => repository_params}) do
-
+    users = allowed_owners(conn)
     repository_params = repository_params
     |> Map.put("owner_id", conn.assigns[:current_user].id)
     |> Accounts.Repository.prepare_attrs
@@ -336,12 +336,17 @@ defmodule EfossilsWeb.RepositoryController do
     changeset =  %Accounts.Repository{}
     |> Accounts.Repository.changeset(repository_params)
 
-
-    result = with {:ok, migrate_path} <- Efossils.Command.migrate_repository(repository_params["source"],
-                       repository_params["source_url"], [username: source_username,
-                                                         password: source_password]),
-                  {:ok, repository} <- Efossils.Repo.insert(changeset),
-                  {:ok, ctx} <- Accounts.context_repository_from_migrate(migrate_path, repository),
+    result = Ecto.Multi.new()
+    |> Ecto.Multi.run(:migrate_path, fn repo, _ ->
+      Efossils.Command.migrate_repository(repository_params["source"],
+        repository_params["source_url"], [username: source_username,
+                                          password: source_password])
+    end)
+    |> Ecto.Multi.run(:repository, fn repo, _ ->
+      Efossils.Repo.insert(changeset)
+    end)
+    |> Ecto.Multi.run(:ctx, fn repo, %{repository: repository, migrate_path: migrate_path} ->
+                  with {:ok, ctx} <- Accounts.context_repository_from_migrate(migrate_path, repository),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "project-name", repository.name),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "project-description", repository.description),
                   {:ok, _} <- Efossils.Command.force_setting(ctx, "short-project-name", repository.nickname),
@@ -358,18 +363,19 @@ defmodule EfossilsWeb.RepositoryController do
                   {:ok, _} <- Efossils.Command.config_import(ctx, "fossil.skin"),
                   {:ok, _} <- Efossils.Command.config_import(ctx, "fossil.ticket.skin"),
                   {:ok, _} <- Efossils.Command.Collaborative.append_assigned_to(ctx, login_username),
-                  {:ok, _} <- Efossils.Command.capabilities_user(ctx, "nobody", nobody_capabilities),
-                  {:ok, _} <- Accounts.update_repository(repository, Enum.into(ctx, %{})),
-      do: {:ok, repository}
-    
-    case result do
-      {:ok, repository} ->
+                  {:ok, ctx} <- Efossils.Command.capabilities_user(ctx, "nobody", nobody_capabilities),
+      do: {:ok, ctx}
+    end)
+    |> Ecto.Multi.run(:update_ctx, fn rep, %{repository: repository, ctx: ctx} ->
+      Accounts.update_repository(repository, Enum.into(ctx, %{}))
+    end)
+
+    case Repo.transaction(result) do
+      {:ok, %{repository: repository}} ->
         conn
         |> put_flash(:info, "Repository created successfully.")
         |> redirect(to: "/dashboard")
-      {:error, :authentication} ->
-        users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
-        
+      {:error, _, :authentication, _} ->
         changeset = changeset
         |> Ecto.Changeset.add_error(:source_url, "failed authentication")
 
@@ -378,9 +384,7 @@ defmodule EfossilsWeb.RepositoryController do
           users: users,
           sources: @sources_migration,
           licenses: build_list_licenses())
-      {:error, :required_authentication} ->
-        users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
-        
+      {:error, _, :required_authentication, _} ->
         changeset = changeset
         |> Ecto.Changeset.add_error(:source_url, "required authentication")
 
@@ -389,18 +393,21 @@ defmodule EfossilsWeb.RepositoryController do
           users: users,
           sources: @sources_migration,
           licenses: build_list_licenses())
-      {:error, %Ecto.Changeset{} = changeset} ->
-        users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
-
+      {:error, :repository, %Ecto.Changeset{} = changeset, _} ->
+        render(conn, "migrate.html",
+          changeset: changeset,
+          users: users,
+          sources: @sources_migration,
+          licenses: build_list_licenses())
+      {:error, :update_ctx, %Ecto.Changeset{} = changeset, %{ctx: ctx}} ->
+        Efossils.Command.delete_repository(ctx)
         render(conn, "migrate.html",
           changeset: changeset,
           users: users,
           sources: @sources_migration,
           licenses: build_list_licenses())
       # TODO : mientras se afina
-      {:error, error} ->
-        users = Enum.map(Accounts.list_users, &({&1.name, &1.id}))
-        
+      {:error, _, error, _} ->
         changeset = changeset
         |> Ecto.Changeset.add_error(:source_url, inspect error)
 
