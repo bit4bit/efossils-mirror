@@ -403,7 +403,7 @@ defmodule Efossils.Command do
 
     case System.cmd("timeout", args, [stderr_to_stdout: true, env: env]) do
       {_, 0} ->
-        cmd_import = ~c(git -C #{String.to_charlist(source_path)} fast-export --all |) ++
+        cmd_import = ~c(git -C #{String.to_charlist(source_path)} fast-export --signed-tags=strip --all |) ++
           ~c(fossil import --quiet --force --git #{String.to_charlist(dest_tmp_path)})
         
         out = to_string(:os.cmd(cmd_import))
