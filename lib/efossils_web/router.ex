@@ -68,7 +68,7 @@ defmodule EfossilsWeb.Router do
     get "/", PageController, :index
 
     get "/explore/repositories", ExploreRepositoriesController, :index
-    get "/explore/:username/repositories", ExploreRepositoriesController, :index_by_username
+    get "/explore/repositories/:username", ExploreRepositoriesController, :index_by_username
   end
 
   scope "/", EfossilsWeb do
