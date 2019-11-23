@@ -59,8 +59,8 @@ config :efossils, EfossilsWeb.PowMailer,
 # Configure your database
 config :efossils, Efossils.Repo,
   adapter: Ecto.Adapters.Postgres,
-  username: "neurodev",
-  password: "neurodev",
+  username: "efossils",
+  password: "efossils",
   database: "efossils_dev",
-  hostname: "10.0.0.150",
+  hostname: "10.0.0.143",
   pool_size: 10
