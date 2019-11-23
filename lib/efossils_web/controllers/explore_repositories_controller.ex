@@ -20,6 +20,10 @@ defmodule EfossilsWeb.ExploreRepositoriesController do
   use EfossilsWeb, :controller
   import Ecto.Query, warn: false
   alias Efossils.Accounts
+
+  def index_by_username(conn, params) do
+    index(conn, params)
+  end
   
   def index(conn, params) do
     order_by = case params["order_by"] do
@@ -30,14 +34,26 @@ defmodule EfossilsWeb.ExploreRepositoriesController do
                  _ ->
                    [desc: :inserted_at]
                end
+
     filter = case params["license"] do
                empty when is_nil(empty) or empty == "" -> []
                license -> [license: license]
-               end
+             end
+
+    filter_by_username = case params["username"] do
+                           empty when is_nil(empty) or empty == "" -> []
+                           username ->
+                             case Accounts.get_user_by_name(username) do
+                               nil -> [owner_id: 0]
+                               user -> [owner_id: user.id]
+                             end
+                         end
+    
     repositories = search(Efossils.Accounts.Repository, params["search"])
     |> preload([:base_repository, :owner])
     |> order_by(^order_by)
     |> where(^filter)
+    |> where(^filter_by_username)
     |> Efossils.Repo.paginate(params)
     render conn, "index.html", repositories: repositories,
       orderBy: params["order_by"],

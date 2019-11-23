@@ -66,7 +66,9 @@ defmodule EfossilsWeb.Router do
     pipe_through :browser # Use the default browser stack
     
     get "/", PageController, :index
+
     get "/explore/repositories", ExploreRepositoriesController, :index
+    get "/explore/:username/repositories", ExploreRepositoriesController, :index_by_username
   end
 
   scope "/", EfossilsWeb do
