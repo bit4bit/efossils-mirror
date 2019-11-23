@@ -2,6 +2,10 @@ defmodule EfossilsWeb.EfossilsHelper do
   @moduledoc false
   alias Efossils.Accounts
 
+  def repository_username(repo) do
+    repo.owner.name
+  end
+  
   def repository_num_collaborators(repo) do
     Accounts.count_collaborations(repo)
   end

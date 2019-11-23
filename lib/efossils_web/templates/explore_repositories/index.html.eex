@@ -50,11 +50,16 @@
   <%=  for repository <- @repositories do %>
     <div class="column">
       <div class="ui fluid card">
+
         <div class="content">
           <div class="ui teal right ribbon label"><%= Application.get_env(:efossils, :federated_name) %>
           </div>
 
           <div class="header">
+            <div class="ui olive left ribbon label">
+              <%= repository_username(repository) %>
+            </div>
+
 <%= repository.nickname %>
           </div>
           <div class="description">
