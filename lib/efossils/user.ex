@@ -40,7 +40,8 @@ defmodule Efossils.User do
     field :avatar, :binary
     field :avatar_email, :string
     field :use_custom_avatar, :boolean, default: false
-    
+    field :color_css, :string
+
     #counters
     field :num_stars, :integer, default: 0
     field :num_repos, :integer, default: 0
@@ -57,6 +58,7 @@ defmodule Efossils.User do
     model
     |> cast(params, [:name, :nickname, :email, :keep_email_private, :location, :website, :avatar_email, :avatar, :use_custom_avatar, :password, :confirm_password])
     |> Efossils.Utils.build_nickname()
+    |> put_color()
     |> validate_required([:nickname, :name, :email])
     |> validate_format(:email, ~r/@/)
     |> unique_constraint(:email)
@@ -69,6 +71,7 @@ defmodule Efossils.User do
     |> cast(params, [:name, :username, :email, :keep_email_private, :location, :website, :max_repo_creation, :prohibit_login, :avatar_email, :avatar, :use_custom_avatar, :num_repos, :num_stars])
     |> Efossils.Utils.build_nickname()
     |> put_name()
+    |> put_color()
     |> validate_required([:username, :email])
     |> validate_format(:email, ~r/@/)
     |> unique_constraint(:email)
@@ -100,4 +103,12 @@ defmodule Efossils.User do
     end
   end
 
+  defp put_color(changeset) do
+    colors = [
+      "red", "orange", "yellow", "olive", "green", "teal", "blue", "violet", "purple",
+      "pink", "brown", "grey", "black"
+    ]
+    changeset
+    |> put_change(:color_css, Enum.shuffle(colors) |> List.first)
+  end
 end

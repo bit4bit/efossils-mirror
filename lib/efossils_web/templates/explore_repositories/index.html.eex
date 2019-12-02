@@ -56,7 +56,7 @@
           </div>
 
           <div class="header">
-            <div class="ui olive left ribbon label">
+            <div class="ui <%= repository.owner.color_css %> left ribbon label" style="">
               <%= repository_username(repository) %>
             </div>
 
