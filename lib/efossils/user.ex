@@ -109,6 +109,6 @@ defmodule Efossils.User do
       "pink", "brown", "grey", "black"
     ]
     changeset
-    |> put_change(:color_css, Enum.shuffle(colors) |> List.first)
+    |> put_change(:color_css, Enum.random(colors))
   end
 end
