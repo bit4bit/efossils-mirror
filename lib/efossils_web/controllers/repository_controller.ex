@@ -24,8 +24,8 @@ defmodule EfossilsWeb.RepositoryController do
 
   @readonly_capabilities "ghojr2"
   @nobody_capabilities "gjorz2"
-  @default_capabilities "cdefgijkmnortuvwx4"
-  @default_capabilities_collaborator "cdefgijkmnortuvwx4"
+  @default_capabilities "cdefgijkmnortuvwxy4"
+  @default_capabilities_collaborator "cdefgijkmnortuvwxy4"
   @sources_migration [{"Fossil", "fossil"}, {"GIT", "git"}]
   @sources_pushmirror [{"Fossil", "fossil"}, {"GIT", "git"}]
 
