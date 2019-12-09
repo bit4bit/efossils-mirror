@@ -84,7 +84,15 @@ defmodule Efossils.Accounts do
     )
     |> Repo.preload([:base_repository, :owner])
   end
-  
+
+  def has_access_repository(%Efossils.User{} = user, %Repository{} = repository) do
+    Repo.exists?(from r in Repository,
+      left_join: colab in Efossils.Accounts.Collaboration,
+      on: colab.repository_id == r.id,
+      where: r.owner_id == ^user.id or colab.user_id == ^user.id,
+      order_by: [desc: :inserted_at])
+  end
+
   @doc """
   Gets a single repository.
 

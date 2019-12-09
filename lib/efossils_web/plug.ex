@@ -138,6 +138,7 @@ defmodule EfossilsWeb.Proxy.Router do
   defp get_credentials_basic_auth(_), do: nil
 
 
+
   defp authorization(conn) do
     user = conn.assigns[:current_user]
     authenticated_user = conn.assigns[:authenticated_user]
@@ -157,7 +158,13 @@ defmodule EfossilsWeb.Proxy.Router do
           |> send_resp(403, "Forbidden")
           |> halt
         true ->
-          conn
+          if Efossils.Accounts.has_access_repository(authenticated_user, repository) do
+            conn
+          else
+            conn
+            |> send_resp(403, "Not Allowed Access")
+            |> halt
+          end
       end
     end
   end
