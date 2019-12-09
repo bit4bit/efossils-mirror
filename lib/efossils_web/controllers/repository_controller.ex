@@ -182,7 +182,8 @@ defmodule EfossilsWeb.RepositoryController do
     else
       Plug.Conn.assign(conn, :delete_error, "Please verify")
       |> render("edit.html", repository: repository,
-      changeset: changeset, changeset_pushmirror: changeset_pushmirror,
+      changeset: changeset,
+      changeset_pushmirror: changeset_pushmirror,
       sources_pushmirror: @sources_pushmirror,
       pushmirrors: pushmirrors,
       collaborations: collaborations)
@@ -288,8 +289,9 @@ defmodule EfossilsWeb.RepositoryController do
     
     {:ok, ctx} = Accounts.context_repository(repository)
     Efossils.Command.Collaborative.remove_assigned_to(ctx, collaboration.user.nickname)
-    
-    render(conn, "edit.html", repository: repository, changeset: changeset, collaborations: collaborations)
+
+    conn
+    |> redirect(to: repository_path(conn, :edit, repository))
   end
 
   def migrate_new(conn, _params) do
