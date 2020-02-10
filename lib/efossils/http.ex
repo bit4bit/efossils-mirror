@@ -32,7 +32,6 @@ defmodule Efossils.HttpSingleRequest do
            {'FOSSIL_USER', to_charlist(username)},
            {'REMOTE_USER', to_charlist(username)}]
     args = ["http", "--nossl",
-            "-U", username,
             "--https",
             "--baseurl", "#{baseurl}",
             db_path]
