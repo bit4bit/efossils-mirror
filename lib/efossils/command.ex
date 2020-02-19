@@ -473,6 +473,9 @@ defmodule Efossils.Command do
     db_path = Keyword.get(ctx, :db_path)
     env = [{"HOME", Keyword.get(ctx, :work_path)}]
     {out, _} = System.cmd(get_command, ["rebuild", "--stats", db_path], [stderr_to_stdout: true, env: env])
+    {:ok, _} = force_setting(ctx, "remote_user_ok", "1")
+    {:ok, _} = force_setting(ctx, "http_authentication_ok", "1")
+    
     Mix.shell.info(out)
   end
 
