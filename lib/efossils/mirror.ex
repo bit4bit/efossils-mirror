@@ -37,11 +37,13 @@ defmodule Efossils.Mirror do
   end
 
   def handle_info(:tick, state) do
+    values = Map.keys(state)
+    
     spull = Enum.map(Repo.all(Repositories.PushMirror) |> Repo.preload([:repository]), fn(pushmirror) ->
-      unless Map.has_key?(state, pushmirror.id) do
+      unless pushmirror.repository_id in values do
         {:ok, pid} = Efossils.MirrorPush.start_link(pushmirror)
         Process.monitor(pid)
-        {pid, pushmirror}
+        {pid, pushmirror.repository_id}
       else
         nil
       end
@@ -49,7 +51,7 @@ defmodule Efossils.Mirror do
     |> Enum.reject(&(is_nil(&1)))
 
     spush = Enum.map(Accounts.list_repositories_mirror(), fn(repository) ->
-      unless Map.has_key?(state, repository.id) do
+      unless repository.id in values do
         if repository.is_mirror do
           {:ok, pid} = Efossils.MirrorPull.start_link(repository)
           Process.monitor(pid)
