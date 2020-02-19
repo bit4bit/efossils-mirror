@@ -238,7 +238,7 @@ defmodule Efossils.Command do
   @spec force_setting(context(), String.t, String.t):: :ok | {:error, String.t}
   def force_setting(ctx, key, val) do
     db_path = Keyword.get(ctx, :db_path)
-    query = "INSERT OR REPLACE INTO config VALUES(\"#{key}\", \"#{val}\", now())"
+    query = "INSERT OR REPLACE INTO config VALUES('#{key}', '#{val}', now())"
     case cmd(ctx, ["sql",
                    "-R", db_path, query]) do
       {_, 0} ->
